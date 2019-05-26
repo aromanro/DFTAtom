@@ -74,7 +74,7 @@ namespace DFT {
 
 	template<class NumerovFunction> class Numerov
 	{
-		static constexpr double secondValue = 1E-50;
+		static constexpr double secondValue = 1E-100; // it's really needed a better guess than this!!!!!
 
 	public:
 		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, int numPoints = 0) : function(pot, delta, Rmax, numPoints) {}
