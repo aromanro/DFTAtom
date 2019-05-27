@@ -199,7 +199,9 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 	{
 		MyStream myStream(bufferStr, bufferStrMutex);
 		RedirectStream redirect(std::cout, myStream);
-
+		
+		static const char orb[] = { 's', 'p', 'd', 'f' };
+		
 		const int Z = options.Z;
 		const int MultigridLevels = options.MultigridLevels;
 
@@ -327,7 +329,8 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 
 				// now really solve it
 				level.E = (TopEnergy + BottomEnergy) / 2;
-				BottomEnergy = level.E;
+				
+				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
 				std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
 
 				// square the wavefunction
@@ -349,7 +352,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 
 				const double integralForSquare = DFT::Integral::SimpsonOneThird(1, result3); // for nonuniform case the step is 1
 
-				std::cout << "Energy: " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
+				std::cout << "Energy " << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
 
 				for (int i = 0; i < result.size() - 1; ++i)
 					newDensity[i] += level.m_nrElectrons * result2[i] / integralForSquare;
@@ -464,7 +467,6 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 			std::cout << "********************************************************************************" << std::endl;
 		}
 
-		const char orb[] = { 's', 'p', 'd', 'f' };
 		for (const auto& level : levels)
 			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
 
