@@ -25,6 +25,11 @@ namespace DFT {
 			return  2. * (effectivePotential - E);
 		}
 
+		inline double GetBoundaryValue(double position) const
+		{
+			return position * exp(-position) * 1E-5; //not tested!
+		}
+
 	protected:
 		const Potential& m_pot;
 	};
@@ -55,6 +60,13 @@ namespace DFT {
 			return  2. * (effectivePotential - E) * Rp2delta2 * exp(posIndex * twodelta) + delta2p4;
 		}
 
+		inline double GetBoundaryValue(double position) const
+		{
+			const double realPosition = GetPosition(position);
+
+			return realPosition * exp(-realPosition - position * m_delta * 0.5) * 1E-70;
+		}
+
 	protected:
 		inline double GetPosition(int posIndex) const
 		{
@@ -80,19 +92,24 @@ namespace DFT {
 		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, int numPoints = 0) : function(pot, delta, Rmax, numPoints) {}
 
 
-		inline void SolveSchrodingerCountNodes(int Z, double startPoint, unsigned int l, double E, unsigned int steps, int nodesLimit, int& nodesCount)
+		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, unsigned int steps, int nodesLimit, int& nodesCount)
 		{
 			h = startPoint / steps;
 			h2 = h * h;
 			h2p12 = h2 / 12.;
 
-			double prevSol = 0;
-			double wprev = 0;
 
-			double position = startPoint - h;
-			double funcVal = function(l, E, position, steps - 1);
-			double solution = secondValue;
-			double w = (1 - h2p12 * funcVal) * solution;
+			double position = startPoint;
+			double solution = function.GetBoundaryValue(position);
+		
+			double prevSol = solution;
+			double funcVal = function(l, E, position, steps);
+			double wprev = (1 - h2 / 12 * funcVal) * solution;
+
+			position -= h;
+			solution = function.GetBoundaryValue(position);
+			funcVal = function(l, E, position, steps - 1);
+			double w = (1 - h2 / 12. * funcVal) * solution;
 
 			bool oldSgn = (solution >= 0);
 			nodesCount = 0;
@@ -130,20 +147,23 @@ namespace DFT {
 			}
 		}
 
-		inline double SolveSchrodingerSolutionInZero(int Z, double startPoint, unsigned int l, double E, unsigned int steps)
+		inline double SolveSchrodingerSolutionInZero(double startPoint, unsigned int l, double E, unsigned int steps)
 		{
 			h = startPoint / steps;
 			h2 = h * h;
 			h2p12 = h2 / 12.;
 
+			double position = startPoint;
+			double solution = function.GetBoundaryValue(position);
+		
+			double prevSol = solution;
+			double funcVal = function(l, E, position, steps);
+			double wprev = (1 - h2 / 12 * funcVal) * solution;
 
-			double prevSol = 0;
-			double wprev = 0;
-
-			double position = startPoint - h;
-			double funcVal = function(l, E, position, steps - 1);
-			double solution = secondValue;
-			double w = (1 - h2p12 * funcVal) * solution;
+			position -= h;
+			solution = function.GetBoundaryValue(position);
+			funcVal = function(l, E, position, steps - 1);
+			double w = (1 - h2 / 12. * funcVal) * solution;
 
 			for (int i = steps - 2; i > 0; --i)
 			{
@@ -165,28 +185,29 @@ namespace DFT {
 		}
 
 
-		inline std::vector<double> SolveSchrodingerSolutionCompletely(int Z, double startPoint, unsigned int l, double E, unsigned int steps)
+		inline std::vector<double> SolveSchrodingerSolutionCompletely(double startPoint, unsigned int l, double E, unsigned int steps)
 		{
 			h = startPoint / steps;
 			h2 = h * h;
 			h2p12 = h2 / 12.;
 
-
 			std::vector<double> Psi(steps + 1);
 
-			double funcVal = function(l, E, startPoint, steps);
-			Psi[steps] = 0;
-			double wprev = 0;
+			double position = startPoint;
+			double solution = function.GetBoundaryValue(position);
+			Psi[steps] = solution;
+			double prevSol = solution;
+			double funcVal = function(l, E, position, steps);
+			double wprev = (1 - h2 / 12 * funcVal) * solution;
 
-
-			double position = startPoint - h;
-			Psi[steps - 1] = secondValue;
+			position -= h;
+			solution = function.GetBoundaryValue(position);
+			Psi[steps - 1] = solution;
 			funcVal = function(l, E, position, steps - 1);
-			double w = (1 - h2p12 * funcVal) * Psi[steps - 1];
-
-			double solution = Psi[steps - 1];
-
+			double w = (1 - h2 / 12. * funcVal) * solution;
+			
 			bool hasBigValue = false;
+			double divisor = 1;
 
 			for (int i = steps - 2; i > 0; --i)
 			{
@@ -200,18 +221,28 @@ namespace DFT {
 				funcVal = function(l, E, position, i);
 				Psi[i] = solution = getU(w, funcVal);
 
-				if (abs(Psi[i]) > 1E200) hasBigValue = true;
+				const double absPsi = abs(Psi[i]);
+				if (absPsi > divisor)
+				{
+					hasBigValue = true;
+					if (absPsi > divisor) divisor = absPsi;
+				}
 			}
 
 
 			Psi[0] = Psi[1] * (2 + h2 * funcVal) - Psi[2];
 
-			if (abs(Psi[0]) > 1E200) hasBigValue = true;
+			const double absPsi = abs(Psi[0]);
+			if (absPsi > divisor) 
+			{
+				hasBigValue = true;
+				if (absPsi > divisor) divisor = absPsi;
+			}
 			// this is a dirty trick for big values, avoiding them to get results up to 'infinity'
 			// probably I should use a better guess for the value at limit
 			if (hasBigValue)
 				for (double& psi : Psi)
-					psi /= 1E200;
+					psi /= divisor;
 
 			return Psi;
 		}

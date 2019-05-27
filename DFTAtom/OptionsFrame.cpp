@@ -139,7 +139,7 @@ void OptionsFrame::CreateControls()
 
 	wxFloatingPointValidator<double> dblVal2(&options.deltaGrid);
 	dblVal2.SetRange(0, 1);
-	dblVal2.SetPrecision(5);
+	dblVal2.SetPrecision(8);
 	DeltaCtrl->SetValidator(dblVal2);
 
 	wxFloatingPointValidator<double> dblVal3(&options.alpha);

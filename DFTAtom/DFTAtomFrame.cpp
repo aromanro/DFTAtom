@@ -278,7 +278,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 					const double E = (toe + boe) / 2;
 
 					int NumNodesCounted;
-					numerov.SolveSchrodingerCountNodes(Z, NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
+					numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
 
 					if (NumNodesCounted > NumNodes)
 						toe = E;
@@ -297,7 +297,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 					const double E = (toe + boe) / 2;
 
 					int NumNodesCounted;
-					numerov.SolveSchrodingerCountNodes(Z, NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
+					numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
 
 					if (NumNodesCounted < NumNodes)
 						boe = E;
@@ -308,14 +308,14 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 				}
 				BottomEnergy = boe + energyErr;
 
-				double delta = numerov.SolveSchrodingerSolutionInZero(Z, NumSteps, level.m_L, BottomEnergy, NumSteps);
+				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
 				const bool sgnA = delta > 0;
 
 				for (int i = 0; i < 100; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
-					delta = numerov.SolveSchrodingerSolutionInZero(Z, NumSteps, level.m_L, level.E, NumSteps);
+					delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
 
 					if ((delta > 0) == sgnA)
 						BottomEnergy = level.E;
@@ -328,7 +328,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 				// now really solve it
 				level.E = (TopEnergy + BottomEnergy) / 2;
 				BottomEnergy = level.E;
-				std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(Z, NumSteps, level.m_L, level.E, NumSteps);
+				std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
 
 				// square the wavefunction
 				// also integrate the square of wavefunction to get the normalization constant
@@ -453,7 +453,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 
 			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
 
-			if (abs(Eold - Etotal) < 1E-9)
+			if (abs(Eold - Etotal) < 1E-8)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 
