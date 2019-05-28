@@ -27,7 +27,7 @@ namespace DFT {
 
 		inline double GetBoundaryValue(double position) const
 		{
-			return position * exp(-position) * 1E-5; //not tested!
+			return exp(-position) * 1E-5; //not tested!
 		}
 
 	protected:
@@ -64,7 +64,7 @@ namespace DFT {
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
 
-			return realPosition * exp(-realPosition - position * m_delta * 0.5) * 1E-70;
+			return exp(-realPosition - position * m_delta * 0.5) * 1E-70;
 		}
 
 	protected:
@@ -223,7 +223,7 @@ namespace DFT {
 				if (absPsi > divisor)
 				{
 					hasBigValue = true;
-					if (absPsi > divisor) divisor = absPsi;
+					divisor = absPsi;
 				}
 			}
 
@@ -234,7 +234,7 @@ namespace DFT {
 			if (absPsi > divisor) 
 			{
 				hasBigValue = true;
-				if (absPsi > divisor) divisor = absPsi;
+				divisor = absPsi;
 			}
 			// this is a dirty trick for big values, avoiding them to get results up to 'infinity'
 			// probably I should use a better guess for the value at limit
