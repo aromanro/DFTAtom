@@ -203,8 +203,7 @@ namespace DFT {
 			Psi[steps - 1] = solution;
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2 / 12. * funcVal) * solution;
-			
-			bool hasBigValue = false;
+						
 			double divisor = 1;
 
 			for (int i = steps - 2; i > 0; --i)
@@ -220,11 +219,8 @@ namespace DFT {
 				Psi[i] = solution = getU(w, funcVal);
 
 				const double absPsi = abs(Psi[i]);
-				if (absPsi > divisor)
-				{
-					hasBigValue = true;
+				if (absPsi > divisor)					
 					divisor = absPsi;
-				}
 			}
 
 
@@ -232,13 +228,11 @@ namespace DFT {
 
 			const double absPsi = abs(Psi[0]);
 			if (absPsi > divisor) 
-			{
-				hasBigValue = true;
 				divisor = absPsi;
-			}
+
 			// this is a dirty trick for big values, avoiding them to get results up to 'infinity'
 			// probably I should use a better guess for the value at limit
-			if (hasBigValue)
+			if (divisor > 1)
 				for (double& psi : Psi)
 					psi /= divisor;
 
