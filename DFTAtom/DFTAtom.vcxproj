@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DFTAtom.cpp" />
     <ClCompile Include="DFTAtomApp.cpp" />
     <ClCompile Include="DFTAtomFrame.cpp" />
     <ClCompile Include="Options.cpp" />
@@ -149,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AufbauPrinciple.h" />
+    <ClInclude Include="DFTAtom.h" />
     <ClInclude Include="DFTAtomApp.h" />
     <ClInclude Include="DFTAtomFrame.h" />
     <ClInclude Include="Integral.h" />

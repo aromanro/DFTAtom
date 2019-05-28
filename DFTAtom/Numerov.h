@@ -62,7 +62,7 @@ namespace DFT {
 
 		inline double GetBoundaryValue(double position) const
 		{
-			const double realPosition = GetPosition(position);
+			const double realPosition = GetPosition(static_cast<int>(position));
 
 			return realPosition * exp(-realPosition - position * m_delta * 0.5) * 1E-70;
 		}
