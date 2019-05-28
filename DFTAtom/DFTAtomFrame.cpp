@@ -33,7 +33,7 @@ class MyStream : public std::ostream, std::streambuf
 public:
 	MyStream(std::string& bufStr, std::mutex& strMutex) : std::ostream(this), m_bufStr(bufStr), m_strMutex(strMutex) {}
 
-	int overflow(int c)
+	virtual int overflow(int c) override
 	{
 		log(c);
 
@@ -66,7 +66,7 @@ public:
 		s.rdbuf(backupbuf);
 	}
 
-protected:
+private:
 	std::ostream& s;
 	std::streambuf* const backupbuf;
 };
