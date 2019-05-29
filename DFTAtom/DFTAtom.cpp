@@ -133,13 +133,14 @@ namespace DFT {
 					else
 						TopEnergy = level.E;
 
-					if (TopEnergy - BottomEnergy < energyErr) break;
+					const double absdelta = abs(delta);
+					if (TopEnergy - BottomEnergy < energyErr && absdelta > energyErr && !isnan(absdelta)) 
+						break;
 				}
 
-				// now really solve it
-				level.E = (TopEnergy + BottomEnergy) / 2;
-				
 				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
+
+				// now really solve it				
 				std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
 
 				// square the wavefunction

@@ -102,12 +102,12 @@ namespace DFT {
 		
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
-			double wprev = (1 - h2 / 12 * funcVal) * solution;
+			double wprev = (1 - h2p12 * funcVal) * solution;
 
 			position -= h;
 			solution = function.GetBoundaryValue(position);
 			funcVal = function(l, E, position, steps - 1);
-			double w = (1 - h2 / 12. * funcVal) * solution;
+			double w = (1 - h2p12 * funcVal) * solution;
 
 			bool oldSgn = (solution >= 0);
 			nodesCount = 0;
@@ -125,6 +125,9 @@ namespace DFT {
 				prevSol = solution;
 
 				solution = getU(w, funcVal);
+
+				if (abs(solution) == std::numeric_limits<double>::infinity())
+					return;
 
 				const bool newSgn = (solution >= 0);
 				if (newSgn != oldSgn)
@@ -156,12 +159,12 @@ namespace DFT {
 		
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
-			double wprev = (1 - h2 / 12 * funcVal) * solution;
+			double wprev = (1 - h2p12 * funcVal) * solution;
 
 			position -= h;
 			solution = function.GetBoundaryValue(position);
 			funcVal = function(l, E, position, steps - 1);
-			double w = (1 - h2 / 12. * funcVal) * solution;
+			double w = (1 - h2p12 * funcVal) * solution;
 
 			for (int i = steps - 2; i > 0; --i)
 			{
@@ -175,6 +178,9 @@ namespace DFT {
 				funcVal = function(l, E, position, i);
 				prevSol = solution;
 				solution = getU(w, funcVal);
+				
+				if (abs(solution) == std::numeric_limits<double>::infinity())
+					return solution;
 			}
 
 			solution = solution * (2 + h2 * funcVal) - prevSol;
@@ -196,13 +202,13 @@ namespace DFT {
 			Psi[steps] = solution;
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
-			double wprev = (1 - h2 / 12 * funcVal) * solution;
+			double wprev = (1 - h2p12 * funcVal) * solution;
 
 			position -= h;
 			solution = function.GetBoundaryValue(position);
 			Psi[steps - 1] = solution;
 			funcVal = function(l, E, position, steps - 1);
-			double w = (1 - h2 / 12. * funcVal) * solution;
+			double w = (1 - h2p12 * funcVal) * solution;
 						
 			double divisor = 1;
 
@@ -215,7 +221,7 @@ namespace DFT {
 				wprev = w;
 				w = wnext;
 
-				funcVal = function(l, E, position, i);
+				funcVal = function(l, E, position, i);				
 				Psi[i] = solution = getU(w, funcVal);
 
 				const double absPsi = abs(Psi[i]);
@@ -231,8 +237,8 @@ namespace DFT {
 				divisor = absPsi;
 
 			// this is a dirty trick for big values, avoiding them to get results up to 'infinity'
-			// probably I should use a better guess for the value at limit
-			if (divisor > 1)
+			// probably I should use a better guess for the value at limit			
+			if (divisor > 1 && !isnan(divisor) && abs(divisor) != std::numeric_limits<double>::infinity()) 
 				for (double& psi : Psi)
 					psi /= divisor;
 
