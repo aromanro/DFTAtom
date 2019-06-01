@@ -165,7 +165,9 @@ namespace DFT {
 			solution = function.GetBoundaryValue(position);
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
-
+			
+			double divisor = 1;
+			
 			for (int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
@@ -178,14 +180,24 @@ namespace DFT {
 				funcVal = function(l, E, position, i);
 				prevSol = solution;
 				solution = getU(w, funcVal);
-				
-				if (abs(solution) == std::numeric_limits<double>::infinity())
-					return solution;
+
+				const double absPsi = abs(solution);				
+				if (absPsi == std::numeric_limits<double>::infinity())
+					return prevSol / divisor;
+
+				if (absPsi > divisor)
+					divisor = absPsi;
 			}
 
 			solution = solution * (2 + h2 * funcVal) - prevSol;
+			const double absPsi = abs(solution);
+			if (absPsi == std::numeric_limits<double>::infinity())
+				return prevSol / divisor;
+			
+			if (absPsi > divisor)
+				divisor = absPsi;
 
-			return solution;
+			return solution / divisor;
 		}
 
 
@@ -229,19 +241,19 @@ namespace DFT {
 					divisor = absPsi;
 			}
 
-
 			Psi[0] = Psi[1] * (2 + h2 * funcVal) - Psi[2];
 
 			const double absPsi = abs(Psi[0]);
-			if (absPsi > divisor) 
+			if (absPsi > divisor)
 				divisor = absPsi;
 
 			// this is a dirty trick for big values, avoiding them to get results up to 'infinity'
-			// probably I should use a better guess for the value at limit			
-			if (divisor > 1 && !isnan(divisor) && abs(divisor) != std::numeric_limits<double>::infinity()) 
+			// probably I should use a better guess for the value at limit
+			
+			if (divisor > 1 && !isnan(divisor) && abs(divisor) != std::numeric_limits<double>::infinity())
 				for (double& psi : Psi)
 					psi /= divisor;
-
+			
 			return Psi;
 		}
 

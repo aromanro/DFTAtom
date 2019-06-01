@@ -122,7 +122,7 @@ namespace DFT {
 				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
 				const bool sgnA = delta > 0;
 
-				for (int i = 0; i < 100; ++i)
+				for (int i = 0; i < 500; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
