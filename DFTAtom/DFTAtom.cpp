@@ -63,7 +63,7 @@ namespace DFT {
 			potential.m_potentialValues[i] = (-Z + UHartree[i]) / realPos + Vexc[i];
 		}
 
-		for (int sp = 0; sp < 1000; ++sp)
+		for (int sp = 0; sp < 500; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
 

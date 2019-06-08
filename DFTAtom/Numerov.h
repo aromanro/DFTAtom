@@ -290,7 +290,7 @@ namespace DFT {
 				if (effPotential < E)
 					hitFirstPoint = true;
 
-				if (solution < Psi[i + 1] || (hitFirstPoint && effPotential > E) || abs(solution) > 1E25)
+				if (solution < Psi[i + 1] || (hitFirstPoint && effPotential > E) || abs(solution) > 1E150)
 				{
 					matchPoint = i;
 					break;
@@ -374,7 +374,7 @@ namespace DFT {
 				if (effPotential < E)
 					hitFirstPoint = true;
 
-				if (solution < Psi[i + 1] || (hitFirstPoint && effPotential > E)  || abs(solution) > 1E25)
+				if (solution < Psi[i + 1] || (hitFirstPoint && effPotential > E)  || abs(solution) > 1E150)
 				{
 					matchPoint = i;
 					break;
