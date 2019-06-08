@@ -133,7 +133,7 @@ void OptionsFrame::CreateControls()
 	MultigridCtrl->SetValidator(val2);
 
 	wxFloatingPointValidator<double> dblVal1(&options.MaxR);
-	dblVal1.SetRange(10, 30);
+	dblVal1.SetRange(1, 30);
 	dblVal1.SetPrecision(2);
 	RCtrl->SetValidator(dblVal1);
 
