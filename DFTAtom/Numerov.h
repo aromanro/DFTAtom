@@ -25,9 +25,9 @@ namespace DFT {
 			return  2. * (effectivePotential - E);
 		}
 
-		inline double GetBoundaryValue(double position) const
+		inline double GetBoundaryValue(double position, double E) const
 		{
-			return exp(-position) * 1E-5; //not tested!
+			return exp(-position * sqrt(2. * abs(E))); //not tested!
 		}
 
 	protected:
@@ -60,11 +60,11 @@ namespace DFT {
 			return  2. * (effectivePotential - E) * Rp2delta2 * exp(posIndex * twodelta) + delta2p4;
 		}
 
-		inline double GetBoundaryValue(double position) const
+		inline double GetBoundaryValue(double position, double E) const
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
 
-			return exp(-realPosition - position * m_delta * 0.5) * 1E-70;
+			return exp(-realPosition * sqrt(2. * abs(E)) - position * m_delta * 0.5);
 		}
 
 	protected:
@@ -98,14 +98,14 @@ namespace DFT {
 
 
 			double position = startPoint;
-			double solution = function.GetBoundaryValue(position);
+			double solution = function.GetBoundaryValue(position, E);
 		
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
 			double wprev = (1 - h2p12 * funcVal) * solution;
 
 			position -= h;
-			solution = function.GetBoundaryValue(position);
+			solution = function.GetBoundaryValue(position, E);
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 
@@ -155,18 +155,16 @@ namespace DFT {
 			h2p12 = h2 / 12.;
 
 			double position = startPoint;
-			double solution = function.GetBoundaryValue(position);
+			double solution = function.GetBoundaryValue(position, E);
 		
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
 			double wprev = (1 - h2p12 * funcVal) * solution;
 
 			position -= h;
-			solution = function.GetBoundaryValue(position);
+			solution = function.GetBoundaryValue(position, E);
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
-			
-			double divisor = 1;
 			
 			for (int i = steps - 2; i > 0; --i)
 			{
@@ -180,24 +178,11 @@ namespace DFT {
 				funcVal = function(l, E, position, i);
 				prevSol = solution;
 				solution = getU(w, funcVal);
-
-				const double absPsi = abs(solution);				
-				if (absPsi == std::numeric_limits<double>::infinity())
-					return prevSol / divisor;
-
-				if (absPsi > divisor)
-					divisor = absPsi;
 			}
 
 			solution = solution * (2 + h2 * funcVal) - prevSol;
-			const double absPsi = abs(solution);
-			if (absPsi == std::numeric_limits<double>::infinity())
-				return prevSol / divisor;
-			
-			if (absPsi > divisor)
-				divisor = absPsi;
 
-			return solution / divisor;
+			return solution;
 		}
 
 
@@ -210,20 +195,18 @@ namespace DFT {
 			std::vector<double> Psi(steps + 1);
 
 			double position = startPoint;
-			double solution = function.GetBoundaryValue(position);
+			double solution = function.GetBoundaryValue(position, E);
 			Psi[steps] = solution;
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
 			double wprev = (1 - h2p12 * funcVal) * solution;
 
 			position -= h;
-			solution = function.GetBoundaryValue(position);
+			solution = function.GetBoundaryValue(position, E);
 			Psi[steps - 1] = solution;
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 						
-			double divisor = 1;
-
 			for (int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
@@ -235,25 +218,10 @@ namespace DFT {
 
 				funcVal = function(l, E, position, i);				
 				Psi[i] = solution = getU(w, funcVal);
-
-				const double absPsi = abs(Psi[i]);
-				if (absPsi > divisor)					
-					divisor = absPsi;
 			}
 
 			Psi[0] = Psi[1] * (2 + h2 * funcVal) - Psi[2];
 
-			const double absPsi = abs(Psi[0]);
-			if (absPsi > divisor)
-				divisor = absPsi;
-
-			// this is a dirty trick for big values, avoiding them to get results up to 'infinity'
-			// probably I should use a better guess for the value at limit
-			
-			if (divisor > 1 && !isnan(divisor) && abs(divisor) != std::numeric_limits<double>::infinity())
-				for (double& psi : Psi)
-					psi /= divisor;
-			
 			return Psi;
 		}
 

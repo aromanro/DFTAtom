@@ -72,7 +72,9 @@ namespace DFT {
 
 			DFT::Numerov<DFT::NumerovFunctionNonUniformGrid> numerov(potential, deltaGrid, MaxR, NumGridNodes);
 			
-			double BottomEnergy = -0.5 * Z * Z - 1;
+			double BottomEnergy = - Z * Z - 1;
+
+			bool reallyConverged = true;
 
 			for (auto& level : levels)
 			{
@@ -122,6 +124,7 @@ namespace DFT {
 				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
 				const bool sgnA = delta > 0;
 
+				bool didNotConverge = true;
 				for (int i = 0; i < 500; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
@@ -134,9 +137,14 @@ namespace DFT {
 						TopEnergy = level.E;
 
 					const double absdelta = abs(delta);
-					if (TopEnergy - BottomEnergy < energyErr && absdelta > energyErr && !isnan(absdelta)) 
+					if (TopEnergy - BottomEnergy < energyErr && absdelta > energyErr && !isnan(absdelta))
+					{
+						didNotConverge = false;
 						break;
+					}						
 				}
+
+				if (didNotConverge) reallyConverged = false;
 
 				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
 
@@ -266,7 +274,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
 
-			if (abs(Eold - Etotal) < 1E-7)
+			if (abs(Eold - Etotal) < 1E-7 && reallyConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 
