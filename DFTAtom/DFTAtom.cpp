@@ -20,6 +20,7 @@ namespace DFT {
 	{
 		static const char orb[] = { 's', 'p', 'd', 'f' };
 		static const double energyErr = 1E-10;
+		static const double derivErr = 1E-5;
 
 		const double oneMinusAlpha = 1. - alpha;
 		
@@ -62,7 +63,7 @@ namespace DFT {
 			potential.m_potentialValues[i] = (-Z + UHartree[i]) / realPos + Vexc[i];
 		}
 
-		for (int sp = 0; sp < 500; ++sp)
+		for (int sp = 0; sp < 1000; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
 
@@ -82,7 +83,6 @@ namespace DFT {
 
 				double TopEnergy = 50;
 				
-
 				double toe = TopEnergy;
 				double boe = BottomEnergy;
 				double deltaEnergy = toe - boe;
@@ -125,11 +125,12 @@ namespace DFT {
 				const bool sgnA = delta > 0;
 
 				bool didNotConverge = true;
-				for (int i = 0; i < 500; ++i)
+				for (int i = 0; i < 1000; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
-					delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
+					//delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
+					delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, level.E, NumSteps);
 
 					if ((delta > 0) == sgnA)
 						BottomEnergy = level.E;
@@ -137,19 +138,21 @@ namespace DFT {
 						TopEnergy = level.E;
 
 					const double absdelta = abs(delta);
-					if (TopEnergy - BottomEnergy < energyErr && absdelta > energyErr && !isnan(absdelta))
+					if (TopEnergy - BottomEnergy < energyErr && absdelta < derivErr && !isnan(absdelta))
 					{
 						didNotConverge = false;
 						break;
 					}						
 				}
 
-				if (didNotConverge) reallyConverged = false;
+				if (didNotConverge) 
+					reallyConverged = false;
 
 				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
 
 				// now really solve it				
-				std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
+				//std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
+				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
 
 				// square the wavefunction
 				// also integrate the square of wavefunction to get the normalization constant
