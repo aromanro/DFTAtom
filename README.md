@@ -5,6 +5,12 @@ Description will follow soon on https://compphys.go.ro
 
 Warning! It still has issues!
 
+### PROGRAM IN ACTION
+
+[![Program video](https://img.youtube.com/vi/0wgJyz-M9mI/0.jpg)](https://youtu.be/0wgJyz-M9mI)
+
+### SOME DESCRIPTION
+
 I changed the code to 'shoot' from both 'infinity' and from the nucleus and meet and match the solutions. Still does not work very well for heavy atoms and for them you have to set a small radius to be able to work, but for the program purpose it seems to work okish.
 
 As it's LDA and there is the assumption of spherical symmetry (for non occupied shells you don't really have it except for the 'special' cases when you go with LSDA, for the others there is cylindrical symmetry), it kind of works only for noble gases, but you can get quite ok results for other atoms, too.
