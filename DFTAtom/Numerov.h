@@ -87,6 +87,9 @@ namespace DFT {
 			// my guess is that I could probably use an adjusting max radius, depending on the E (smaller for lower energy levels)
 			// not fixed for all levels, that would probably improve it a lot, but I'll let that for later...
 			// for now this workaround should do
+
+			// one would not even need to actually go with different rmax values, but 'fake' them by actually starting Numerov more inwards
+			// where the 'boundary value' gets big enough and considering the solution as being zero outside that limit 
 			if (value < 1E-300)
 			{
 				if (position == 0) value = 0;
