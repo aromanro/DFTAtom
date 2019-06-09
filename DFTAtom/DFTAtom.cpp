@@ -288,6 +288,9 @@ namespace DFT {
 			std::cout << "********************************************************************************" << std::endl;
 		}
 
+		// sort levels by energy, just in case the energy values for levels do not come up as in the expected order (there are exceptions to the aufbau principle, too)
+		std::sort(levels.begin(), levels.end(), [](const auto& val1, const auto& val2) -> bool { return val1.E < val2.E; });
+
 		for (const auto& level : levels)
 			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
 	}
