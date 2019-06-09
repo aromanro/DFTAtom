@@ -272,7 +272,7 @@ namespace DFT {
 			
 			int matchPoint = 2;
 
-			bool hitFirstPoint = false;
+			//bool hitFirstPoint = false;
 
 			for (int i = steps - 2; i > 0; --i)
 			{
@@ -286,11 +286,11 @@ namespace DFT {
 				funcVal = function(l, E, position, i);				
 				Psi[i] = solution = getU(w, funcVal);
 
-				const double effPotential = function.GetEffectivePotential(l, position, i);
-				if (effPotential < E)
-					hitFirstPoint = true;
+				//const double effPotential = function.GetEffectivePotential(l, position, i);
+				//if (effPotential < E)
+				//	hitFirstPoint = true;
 
-				if (solution < Psi[i + 1] || (hitFirstPoint && effPotential > E) || abs(solution) > 1E150)
+				if (solution < Psi[i + 1] /*|| (hitFirstPoint && effPotential > E)*/ || abs(solution) > 1E150)
 				{
 					matchPoint = i;
 					break;
@@ -357,7 +357,7 @@ namespace DFT {
 			double w = (1 - h2p12 * funcVal) * solution;
 			
 			int matchPoint = 2;
-			bool hitFirstPoint = false;
+			//bool hitFirstPoint = false;
 			for (int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
@@ -370,11 +370,11 @@ namespace DFT {
 				funcVal = function(l, E, position, i);				
 				Psi[i] = solution = getU(w, funcVal);
 
-				const double effPotential = function.GetEffectivePotential(l, position, i);
-				if (effPotential < E)
-					hitFirstPoint = true;
+				//const double effPotential = function.GetEffectivePotential(l, position, i);
+				//if (effPotential < E)
+				//	hitFirstPoint = true;
 
-				if (solution < Psi[i + 1] || (hitFirstPoint && effPotential > E)  || abs(solution) > 1E150)
+				if (solution < Psi[i + 1] /*|| (hitFirstPoint && effPotential > E)*/ || abs(solution) > 1E150)
 				{
 					matchPoint = i;
 					break;

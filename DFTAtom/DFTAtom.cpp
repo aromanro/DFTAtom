@@ -277,7 +277,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
 
-			if (abs(Eold - Etotal) < 1E-7 && reallyConverged)
+			if (abs((Eold - Etotal) / Etotal) < 1E-8 && reallyConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 
