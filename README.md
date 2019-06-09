@@ -11,6 +11,7 @@ As it's LDA and there is the assumption of spherical symmetry (for non occupied 
 
 Here is what I get in a bad scenario, Radon:
 
+'''
 Step: 61
 Energy 1s: -3204.75164592 Num nodes: 0
 Energy 2s: -546.573211017 Num nodes: 1
@@ -32,12 +33,14 @@ Etotal = -21861.3437843 Ekin = 21853.9298692 Ecoul = 8632.41882992 Eenuc = -5196
 Finished!
 
 1s2 2s2 2p6 3s2 3p6 3d10 4s2 4p6 4d10 4f14 5s2 5p6 5d10 6s2 6p6
+'''
 
 I used 12 for 'multigrid levels' (that means 4097 nodes), 0.001 for delta, mixing 0.5 and I have to drop the max radius to 6.
 The results are not very good, I guess with some other parameters they might be improved somewhat, but probably I'm missing something. Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-thorium
 
 For a lighter noble gas I get better results, for Argon for example:
 
+'''
 Step: 22
 Energy 1s: -113.800135292 Num nodes: 0
 Energy 2s: -10.7941726364 Num nodes: 1
@@ -49,6 +52,7 @@ Etotal = -525.946165301 Ekin = 524.96616451 Ecoul = 231.458075561 Eenuc = -1253.
 Finished!
 
 1s2 2s2 2p6 3s2 3p6 
+'''
 
 The parameters are as above but max radius is increased to 10. 
 Here is the NIST data for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-argon
