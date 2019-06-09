@@ -42,7 +42,7 @@ Finished!
 ```
 
 I used 12 for 'multigrid levels' (that means 4097 nodes), 0.001 for delta, mixing 0.5 and I have to drop the max radius to 6.
-The results are not very good, I guess with some other parameters they might be improved somewhat, but probably I'm missing something. Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-thorium
+The results are not very good, I guess with some other parameters they might be improved somewhat, but probably I'm missing something. Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-radon
 
 For a lighter noble gas I get better results, for Argon for example:
 
