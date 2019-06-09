@@ -78,8 +78,22 @@ namespace DFT {
 		inline double GetBoundaryValueFar(double position, double E) const
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
+			
+			double value = exp(-realPosition * sqrt(2. * abs(E)) - position * m_delta * 0.5);
 
-			return exp(-realPosition * sqrt(2. * abs(E)) - position * m_delta * 0.5);
+			// if the exponential value gets too low, fall back on zero at boundary and a very small value for the next one inwards
+			// this happens for 'large' rmax, for Radon with this I can increase it from 6 to 11 and still converge
+
+			// my guess is that I could probably use an adjusting max radius, depending on the E (smaller for lower energy levels)
+			// not fixed for all levels, that would probably improve it a lot, but I'll let that for later...
+			// for now this workaround should do
+			if (value < 1E-300)
+			{
+				if (position == 0) value = 0;
+				else value = 1E-300;
+			}
+
+			return value;
 		}
 
 		inline double GetBoundaryValueZero(double position, int l) const
