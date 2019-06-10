@@ -121,7 +121,7 @@ namespace DFT {
 				}
 				BottomEnergy = boe + energyErr;
 
-				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
+				double delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, level.E, NumSteps);
 				const bool sgnA = delta > 0;
 
 				bool didNotConverge = true;
@@ -129,7 +129,6 @@ namespace DFT {
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
-					//delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
 					delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, level.E, NumSteps);
 
 					if ((delta > 0) == sgnA)
@@ -151,7 +150,6 @@ namespace DFT {
 				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
 
 				// now really solve it				
-				//std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
 				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
 
 				// square the wavefunction
