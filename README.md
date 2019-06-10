@@ -42,7 +42,7 @@ Finished!
 ```
 
 I used 12 for 'multigrid levels' (that means 4097 nodes), 0.001 for delta, mixing 0.5 and I have to drop the max radius to 6.
-The results are not very good, I guess with some other parameters they might be improved somewhat, but probably I'm missing something. Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-radon
+The results are not very good, I guess with some other parameters they might be improved somewhat, but the code is missing something. Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-radon
 
 Later edit: Now the radius can get up to 11 in this case and still converge, with a workaround. I will make this much better when I'll have time, by starting the inwards shooting from the 'proper' position depending on the energy level.
 
@@ -65,6 +65,6 @@ Finished!
 The parameters are as above but max radius is increased to 10. 
 Here is the NIST data for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-argon
 
-The program is faster than I expected, especially because I went to multi-grid instead of Numerov (or Runge-Kutta) for Poisson.
+The program is faster than I expected, especially because I went to multi-grid instead of Numerov (or Runge-Kutta) for Poisson, so I expected it to be slower than with the other approach.
 
 
