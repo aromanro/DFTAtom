@@ -101,6 +101,7 @@ namespace DFT {
 					deltaEnergy = toe - boe;
 				}
 				toe -= energyErr;
+
 				TopEnergy = toe;
 
 				boe = BottomEnergy;
@@ -120,23 +121,24 @@ namespace DFT {
 					deltaEnergy = toe - boe;
 				}
 				BottomEnergy = boe + energyErr;
-
-				double delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, level.E, NumSteps);
-				const bool sgnA = delta > 0;
+				
+				
+				double delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, TopEnergy, NumSteps);
+				bool sgnTop = delta > 0;
 
 				bool didNotConverge = true;
 				for (int i = 0; i < 1000; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
-					delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, level.E, NumSteps);
+					const double delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, level.E, NumSteps);
+					const double absdelta = abs(delta);
 
-					if ((delta > 0) == sgnA)
+					if ((delta > 0) == sgnTop)
 						BottomEnergy = level.E;
 					else
 						TopEnergy = level.E;
-
-					const double absdelta = abs(delta);
+					
 					if (TopEnergy - BottomEnergy < energyErr && absdelta < derivErr && !isnan(absdelta))
 					{
 						didNotConverge = false;

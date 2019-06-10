@@ -48,7 +48,7 @@ namespace DFT {
 	protected:
 		inline static double GetMaxRadius(double E)
 		{
-			return 300. / sqrt(2. * abs(E));
+			return 323. / sqrt(2. * abs(E));
 		}
 
 		const Potential& m_pot;
@@ -111,18 +111,19 @@ namespace DFT {
 
 		inline int GetMaxRadiusIndex(double E) const
 		{			 
-			return static_cast<int>(floor(log(GetMaxRadius(E) / Rp + 1.) / m_delta));
-		}
+			const double maxRadius = GetMaxRadius(E);
 
-	protected:
-		inline double GetPosition(int posIndex) const
-		{
-			return Rp * (exp(posIndex * m_delta) - 1.);
+			return static_cast<int>(log(maxRadius / Rp + 1.) / m_delta);
 		}
 
 		inline static double GetMaxRadius(double E)
 		{
-			return 300. / sqrt(2. * abs(E));
+			return 323. / sqrt(2. * abs(E));
+		}
+	protected:
+		inline double GetPosition(int posIndex) const
+		{
+			return Rp * (exp(posIndex * m_delta) - 1.);
 		}
 
 		const Potential& m_pot;
@@ -142,12 +143,27 @@ namespace DFT {
 		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, int numPoints = 0) : function(pot, delta, Rmax, numPoints) {}
 
 
-		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, unsigned int steps, int nodesLimit, int& nodesCount)
-		{
-			h = startPoint / steps;
-			h2 = h * h;
-			h2p12 = h2 / 12.;
+		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, int steps, int nodesLimit, int& nodesCount)
+		{			
+			if (startPoint == steps)
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
 
+				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
+				steps = static_cast<int>(startPoint);
+			}
+			else
+			{
+				h = startPoint / steps;
+				h2 = h * h;
+				h2p12 = h2 / 12.;
+			
+				startPoint = std::min(startPoint, function.GetMaxRadius(E));
+				steps = static_cast<int>(startPoint / h);
+			}
+			
 
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
@@ -201,13 +217,32 @@ namespace DFT {
 		}
 
 
-		inline double SolveSchrodingerMatch(double startPoint, unsigned int l, double E, unsigned int steps)
+		inline double SolveSchrodingerMatch(double startPoint, unsigned int l, double E, int steps)
 		{
-			h = startPoint / steps;
-			h2 = h * h;
-			h2p12 = h2 / 12.;
+			const int highLimit = steps + 1;
+			std::vector<double> Psi(highLimit);
 
-			std::vector<double> Psi(steps + 1);
+			if (startPoint == steps)
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
+
+				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
+				steps = static_cast<int>(startPoint);
+			}
+			else
+			{
+				h = startPoint / steps;
+				h2 = h * h;
+				h2p12 = h2 / 12.;
+			
+				startPoint = std::min(startPoint, function.GetMaxRadius(E));
+				steps = static_cast<int>(startPoint / h);
+			}
+			for (long int i = steps + 1; i < highLimit; ++i)
+				Psi[i] = 0;
+
 
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
@@ -287,14 +322,38 @@ namespace DFT {
 		}
 
 
-		inline std::vector<double> SolveSchrodingerMatchSolutionCompletely(double startPoint, unsigned int l, double E, unsigned int steps)
+		inline std::vector<double> SolveSchrodingerMatchSolutionCompletely(double startPoint, unsigned int l, double E, int steps)
 		{
+			const int highLimit = steps + 1;
+			std::vector<double> Psi(highLimit);
+
+			if (startPoint == steps)
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
+
+				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
+				steps = static_cast<int>(startPoint);
+			}
+			else
+			{
+				h = startPoint / steps;
+				h2 = h * h;
+				h2p12 = h2 / 12.;
+			
+				startPoint = std::min(startPoint, function.GetMaxRadius(E));
+				steps = static_cast<int>(startPoint / h);				
+			}
+			for (long int i = steps + 1; i < highLimit; ++i)
+				Psi[i] = 0;
+
 			h = startPoint / steps;
 			h2 = h * h;
 			h2p12 = h2 / 12.;
 
 			const int size = steps + 1;
-			std::vector<double> Psi(size);
+			
 
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
