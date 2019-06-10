@@ -42,7 +42,7 @@ namespace DFT {
 
 		inline static int GetMaxRadiusIndex(double E, double stepSize)
 		{
-			return static_cast<int>(floor(GetMaxRadius(E) / stepSize));
+			return static_cast<int>(GetMaxRadius(E) / stepSize);
 		}
 
 	protected:
@@ -199,7 +199,7 @@ namespace DFT {
 					oldSgn = newSgn;
 				}
 			}
-
+			
 			if (nodesCount <= nodesLimit)
 			{
 				solution = solution * (2 + h2 * funcVal) - prevSol;
