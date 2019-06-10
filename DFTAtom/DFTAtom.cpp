@@ -123,8 +123,8 @@ namespace DFT {
 				BottomEnergy = boe + energyErr;
 				
 				
-				double delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, TopEnergy, NumSteps);
-				bool sgnTop = delta > 0;
+				double topDelta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, TopEnergy, NumSteps);
+				bool sgnTop = topDelta > 0;
 
 				bool didNotConverge = true;
 				for (int i = 0; i < 1000; ++i)
@@ -135,9 +135,23 @@ namespace DFT {
 					const double absdelta = abs(delta);
 
 					if ((delta > 0) == sgnTop)
-						BottomEnergy = level.E;
+					{
+						// the same sign as 'top'
+						if (absdelta < abs(topDelta))
+						{
+							TopEnergy = level.E;
+							topDelta = delta;
+						}
+						else
+						{
+							BottomEnergy = level.E;
+						}
+					}
 					else
-						TopEnergy = level.E;
+					{
+						// different sign than 'top', the zero value is between them
+						BottomEnergy = level.E;						
+					}
 					
 					if (TopEnergy - BottomEnergy < energyErr && absdelta < derivErr && !isnan(absdelta))
 					{

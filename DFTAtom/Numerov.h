@@ -89,15 +89,7 @@ namespace DFT {
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
 			
-			double value = exp(-realPosition * sqrt(2. * abs(E)));
-
-			// my guess is that I could probably use an adjusting max radius, depending on the E (smaller for lower energy levels)
-			// not fixed for all levels, that would probably improve it a lot, but I'll let that for later...
-
-			// one would not even need to actually go with different rmax values, but 'fake' them by actually starting Numerov more inwards
-			// where the 'boundary value' gets big enough and considering the solution as being zero outside that limit 
-
-			return value;
+			return exp(-realPosition * sqrt(2. * abs(E)));
 		}
 
 		inline double GetBoundaryValueZero(double position, int l) const
