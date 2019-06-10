@@ -30,17 +30,27 @@ namespace DFT {
 			return  2. * (effectivePotential - E);
 		}
 
-		inline double GetBoundaryValueFar(double position, double E) const
+		inline static double GetBoundaryValueFar(double position, double E)
 		{
 			return exp(-position * sqrt(2. * abs(E))); //not tested!
 		}
 
-		inline double GetBoundaryValueZero(double position, int l) const
+		inline static double GetBoundaryValueZero(double position, int l)
 		{
 			return pow(position, l + 1);
 		}
 
+		inline static int GetMaxRadiusIndex(double E, double stepSize)
+		{
+			return static_cast<int>(floor(GetMaxRadius(E) / stepSize));
+		}
+
 	protected:
+		inline static double GetMaxRadius(double E)
+		{
+			return 300. / sqrt(2. * abs(E));
+		}
+
 		const Potential& m_pot;
 	};
 
@@ -79,22 +89,13 @@ namespace DFT {
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
 			
-			double value = exp(-realPosition * sqrt(2. * abs(E)) - position * m_delta * 0.5);
-
-			// if the exponential value gets too low, fall back on zero at boundary and a very small value for the next one inwards
-			// this happens for 'large' rmax, for Radon with this I can increase it from 6 to 11 and still converge
+			double value = exp(-realPosition * sqrt(2. * abs(E)));
 
 			// my guess is that I could probably use an adjusting max radius, depending on the E (smaller for lower energy levels)
 			// not fixed for all levels, that would probably improve it a lot, but I'll let that for later...
-			// for now this workaround should do
 
 			// one would not even need to actually go with different rmax values, but 'fake' them by actually starting Numerov more inwards
 			// where the 'boundary value' gets big enough and considering the solution as being zero outside that limit 
-			if (value < 1E-300)
-			{
-				if (position == 0) value = 0;
-				else value = 1E-300;
-			}
 
 			return value;
 		}
@@ -107,10 +108,21 @@ namespace DFT {
 			return pow(realPosition, l + 1) * exp(-position * m_delta * 0.5);
 		}
 
+
+		inline int GetMaxRadiusIndex(double E) const
+		{			 
+			return static_cast<int>(floor(log(GetMaxRadius(E) / Rp + 1.) / m_delta));
+		}
+
 	protected:
 		inline double GetPosition(int posIndex) const
 		{
 			return Rp * (exp(posIndex * m_delta) - 1.);
+		}
+
+		inline static double GetMaxRadius(double E)
+		{
+			return 300. / sqrt(2. * abs(E));
 		}
 
 		const Potential& m_pot;
