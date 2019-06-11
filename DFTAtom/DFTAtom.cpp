@@ -15,12 +15,35 @@
 
 namespace DFT {
 
+	void DFTAtom::Normalize(std::vector<double>& Psi, double Rp, double deltaGrid)
+	{
+		std::vector<double> result2(Psi.size());
+		for (int i = 0; i < result2.size(); ++i)
+		{
+			// if nonuniform, convert the function back!!!!!
+			Psi[i] *= exp(i * deltaGrid * 0.5);
+
+			result2[i] = Psi[i] * Psi[i];
+
+			// if nonuniform, do the change for dr	
+			const double cnst = Rp * deltaGrid * exp(deltaGrid * i);
+			result2[i] *= cnst;
+		}
+
+		const double integralForSquare = DFT::Integral::SimpsonOneThird(1, result2); // for nonuniform case the step is 1
+		const double norm = sqrt(integralForSquare);
+
+		for (int i = 0; i < Psi.size(); ++i)
+			Psi[i] /= norm;
+	}
+
+
 
 	void DFTAtom::Calculate(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const char orb[] = { 's', 'p', 'd', 'f' };
 		static const double energyErr = 1E-10;
-		static const double derivErr = 1E-5;
+		static const double derivErr = 1E-4; //set to bigger if matching the derivative in the match point
 
 		const double oneMinusAlpha = 1. - alpha;
 		
@@ -100,7 +123,8 @@ namespace DFT {
 
 					deltaEnergy = toe - boe;
 				}
-				toe -= energyErr;
+				//toe -= energyErr;
+				toe -= deltaEnergy;
 
 				TopEnergy = toe;
 
@@ -120,10 +144,26 @@ namespace DFT {
 
 					deltaEnergy = toe - boe;
 				}
-				BottomEnergy = boe + energyErr;
+				//BottomEnergy = boe + energyErr;
+				BottomEnergy = boe + deltaEnergy;
 				
-				
-				double topDelta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, TopEnergy, NumSteps);
+				// ***************************************************************************************************************************
+
+				// what happens here is that I want to locate an interval where the difference between derivatives is one sign for 'top', the other one for 'bottom'
+				// and locate the energy where the difference is closer to zero
+				// but it doesn't always happen that way
+				// in that case the choice would be just to pick the smallest value and that's it
+				// I need to investigate this further, for now it's worse than the other method, although it kind of works...
+
+				/*
+				int matchPoint;
+				std::vector<double> Psi = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, TopEnergy, NumSteps, matchPoint);
+				Normalize(Psi, Rp, deltaGrid);
+				int nextPoint = matchPoint + 1;
+				double deriv1 = (Psi[matchPoint] - Psi[matchPoint - 1]) / numerov.function.GetDerivativeStep(matchPoint, 1);
+				double deriv2 = (Psi[nextPoint] - Psi[matchPoint]) / numerov.function.GetDerivativeStep(nextPoint, 1);
+				double topDelta = deriv1 - deriv2;
+
 				bool sgnTop = topDelta > 0;
 
 				bool didNotConverge = true;
@@ -131,7 +171,13 @@ namespace DFT {
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
-					const double delta = numerov.SolveSchrodingerMatch(NumSteps, level.m_L, level.E, NumSteps);
+					Psi = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
+					Normalize(Psi, Rp, deltaGrid);
+					nextPoint = matchPoint + 1;
+					deriv1 = (Psi[matchPoint] - Psi[matchPoint - 1]) / numerov.function.GetDerivativeStep(matchPoint, 1);
+					deriv2 = (Psi[nextPoint] - Psi[matchPoint]) / numerov.function.GetDerivativeStep(nextPoint, 1);
+					const double delta = deriv1 - deriv2;
+
 					const double absdelta = abs(delta);
 
 					if ((delta > 0) == sgnTop)
@@ -153,6 +199,32 @@ namespace DFT {
 						BottomEnergy = level.E;						
 					}
 					
+					const double energyDiff = TopEnergy - BottomEnergy;
+					if (TopEnergy - BottomEnergy < energyErr && absdelta < derivErr && !isnan(absdelta))
+					{
+						didNotConverge = false;
+						break;
+					}
+				}
+				*/
+				
+				// ***************************************************************************************************************************
+
+				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
+				const bool sgnA = delta > 0;
+
+				bool didNotConverge = true;
+				for (int i = 0; i < 1000; ++i)
+				{
+					level.E = (TopEnergy + BottomEnergy) / 2;
+
+					delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
+					if ((delta > 0) == sgnA)
+						BottomEnergy = level.E;
+					else
+						TopEnergy = level.E;
+
+					const double absdelta = abs(delta);
 					if (TopEnergy - BottomEnergy < energyErr && absdelta < derivErr && !isnan(absdelta))
 					{
 						didNotConverge = false;
@@ -160,37 +232,24 @@ namespace DFT {
 					}						
 				}
 
+				// ***************************************************************************************************************************
+											
 				if (didNotConverge) 
 					reallyConverged = false;
 
 				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
 
-				// now really solve it				
-				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
-
-				// square the wavefunction
-				// also integrate the square of wavefunction to get the normalization constant
-
-				std::vector<double> result2(result.size());
-				std::vector<double> result3(result.size());
-				for (int i = 0; i < result.size(); ++i)
-				{
-					// if nonuniform, convert the function back!!!!!
-					result[i] *= exp(i * deltaGrid * 0.5);
-
-					result2[i] = result[i] * result[i];
-
-					// if nonuniform, do the change for dr	
-					const double cnst = Rp * deltaGrid * exp(deltaGrid * i);
-					result3[i] = result2[i] * cnst;
-				}
-
-				const double integralForSquare = DFT::Integral::SimpsonOneThird(1, result3); // for nonuniform case the step is 1
+				// now really solve it	
+				int matchPoint;
+				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
+				//std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
+				Normalize(result, Rp, deltaGrid);
 
 				std::cout << "Energy " << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
 
 				for (int i = 0; i < result.size() - 1; ++i)
-					newDensity[i] += level.m_nrElectrons * result2[i] / integralForSquare;
+					newDensity[i] += level.m_nrElectrons * result[i] * result[i];
+
 
 				Eelectronic += level.m_nrElectrons * level.E;
 			}
