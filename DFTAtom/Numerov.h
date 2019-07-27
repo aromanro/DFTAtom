@@ -179,10 +179,10 @@ namespace DFT {
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 
-			bool oldSgn = (solution >= 0);
+			bool oldSgn = (solution > 0);
 			nodesCount = 0;
 
-			//bool firstClassicalReturnPoint = false;
+			bool firstClassicalReturnPoint = false;
 			for (int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
@@ -200,7 +200,7 @@ namespace DFT {
 				if (abs(solution) == std::numeric_limits<double>::infinity())
 					return;
 
-				const bool newSgn = (solution >= 0);
+				const bool newSgn = (solution > 0);
 				if (newSgn != oldSgn)
 				{
 					++nodesCount;
@@ -210,21 +210,18 @@ namespace DFT {
 					oldSgn = newSgn;
 				}
 
-				/*
+				// bail out if hitting the classical turning point
 				const double effPotential = function.GetEffectivePotential(l, position, i);
 				if (effPotential <= E)
-				{
 					firstClassicalReturnPoint = true;
-				}
 				else if (firstClassicalReturnPoint && effPotential > E)
-					return;
-				*/
+					return;				
 			}
-			
+						
 			if (nodesCount <= nodesLimit)
 			{
 				solution = solution * (2 + h2 * funcVal) - prevSol;
-				if ((solution >= 0) != oldSgn)
+				if ((solution > 0) != oldSgn)
 					++nodesCount;
 			}
 		}
@@ -280,169 +277,6 @@ namespace DFT {
 
 			return solution;
 		}
-
-		/*
-		inline std::vector<double> SolveSchrodingerSolutionCompletely(double startPoint, unsigned int l, double E, unsigned int steps)
-		{
-			const int highLimit = steps + 1;
-			std::vector<double> Psi(highLimit);
-			if (startPoint == steps)
-			{
-				h = 1;
-				h2 = 1;
-				h2p12 = 1. / 12.;
-
-				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
-				steps = static_cast<int>(startPoint);
-			}
-			else
-			{
-				h = startPoint / steps;
-				h2 = h * h;
-				h2p12 = h2 / 12.;
-			
-				startPoint = std::min(startPoint, function.GetMaxRadius(E));
-				steps = static_cast<int>(startPoint / h);				
-			}
-			for (long int i = steps + 1; i < highLimit; ++i)
-				Psi[i] = 0;
-
-			double position = startPoint;
-			double solution = function.GetBoundaryValueFar(position, E);
-			Psi[steps] = solution;
-			double prevSol = solution;
-			double funcVal = function(l, E, position, steps);
-			double wprev = (1 - h2p12 * funcVal) * solution;
-
-			position -= h;
-			solution = function.GetBoundaryValueFar(position, E);
-			Psi[steps - 1] = solution;
-			funcVal = function(l, E, position, steps - 1);
-			double w = (1 - h2p12 * funcVal) * solution;
-						
-			for (int i = steps - 2; i > 0; --i)
-			{
-				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
-
-				position = h * i;
-
-				wprev = w;
-				w = wnext;
-
-				funcVal = function(l, E, position, i);				
-				Psi[i] = solution = getU(w, funcVal);
-			}
-
-			Psi[0] = Psi[1] * (2 + h2 * funcVal) - Psi[2];
-
-			return Psi;
-		}
-		*/
-
-		/*
-		inline double SolveSchrodingerMatch(double startPoint, unsigned int l, double E, int steps)
-		{
-			const int highLimit = steps + 1;
-			std::vector<double> Psi(highLimit);
-
-			if (startPoint == steps)
-			{
-				h = 1;
-				h2 = 1;
-				h2p12 = 1. / 12.;
-
-				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
-				steps = static_cast<int>(startPoint);
-			}
-			else
-			{
-				h = startPoint / steps;
-				h2 = h * h;
-				h2p12 = h2 / 12.;
-			
-				startPoint = std::min(startPoint, function.GetMaxRadius(E));
-				steps = static_cast<int>(startPoint / h);
-			}
-			for (long int i = steps + 1; i < highLimit; ++i)
-				Psi[i] = 0;
-
-
-			double position = startPoint;
-			double solution = function.GetBoundaryValueFar(position, E);
-			Psi[steps] = solution;
-			double prevSol = solution;
-			double funcVal = function(l, E, position, steps);
-			double wprev = (1 - h2p12 * funcVal) * solution;
-
-			position -= h;
-			solution = function.GetBoundaryValueFar(position, E);
-			Psi[steps - 1] = solution;
-			funcVal = function(l, E, position, steps - 1);
-			double w = (1 - h2p12 * funcVal) * solution;
-			
-			int matchPoint = 2;
-
-			for (int i = steps - 2; i > 0; --i)
-			{
-				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
-
-				position = h * i;
-
-				wprev = w;
-				w = wnext;
-
-				funcVal = function(l, E, position, i);				
-				Psi[i] = solution = getU(w, funcVal);
-
-				//const double effPotential = function.GetEffectivePotential(l, position, i);
-				//alternative: effPotential <= E
-				if (solution < Psi[i + 1] || abs(solution) > 1E150)
-				{
-					matchPoint = i;
-					break;
-				}
-			}
-
-			position = 0;
-			prevSol = Psi[0] = solution = 0;
-			wprev = 0;
-
-			position += h;
-			Psi[1] = solution = function.GetBoundaryValueZero(position, l);
-			funcVal = function(l, E, position, 1);
-			w = (1 - h2p12 * funcVal) * solution;
-
-			for (int i = 2; i < matchPoint; ++i)
-			{
-				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
-
-				position = h * i;
-
-				wprev = w;
-				w = wnext;
-
-				funcVal = function(l, E, position, i);				
-				Psi[i] = solution = getU(w, funcVal);
-			}
-			
-			w = 2. * w - wprev + h2 * solution * funcVal;
-			position = h * matchPoint;
-			funcVal = function(l, E, position, matchPoint);				
-			solution = getU(w, funcVal);
-
-			const double factor = solution / Psi[matchPoint];
-			Psi[matchPoint] = solution;
-
-			const int nextPoint = matchPoint + 1;
-			Psi[nextPoint] *= factor;
-
-			const double deriv1 = (solution - Psi[matchPoint - 1]) / function.GetDerivativeStep(matchPoint, h);
-			const double deriv2 = (Psi[nextPoint] - solution) / function.GetDerivativeStep(nextPoint, h);
-
-			return deriv1 - deriv2;
-		}
-		*/
-
 
 		inline std::vector<double> SolveSchrodingerMatchSolutionCompletely(double startPoint, unsigned int l, double E, int steps, int& matchPoint)
 		{

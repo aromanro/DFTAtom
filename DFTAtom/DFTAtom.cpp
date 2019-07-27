@@ -86,6 +86,8 @@ namespace DFT {
 			potential.m_potentialValues[i] = (-Z + UHartree[i]) / realPos + Vexc[i];
 		}
 
+		bool lastTimeConverged = false;
+
 		for (int sp = 0; sp < 500; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
@@ -106,6 +108,8 @@ namespace DFT {
 
 				double TopEnergy = 50;
 				
+				// locate the interval to search into by using the number of nodes of the wavefunction
+
 				double toe = TopEnergy;
 				double boe = BottomEnergy;
 				double deltaEnergy = toe - boe;
@@ -149,77 +153,18 @@ namespace DFT {
 				
 				// ***************************************************************************************************************************
 
-				// what happens here is that I want to locate an interval where the difference between derivatives is one sign for 'top', the other one for 'bottom'
-				// and locate the energy where the difference is closer to zero
-				// but it doesn't always happen that way
-				// in that case the choice would be just to pick the smallest value and that's it
-				// I need to investigate this further, for now it's worse than the other method, although it kind of works...
-
-				/*
-				int matchPoint;
-				std::vector<double> Psi = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, TopEnergy, NumSteps, matchPoint);
-				Normalize(Psi, Rp, deltaGrid);
-				int nextPoint = matchPoint + 1;
-				double deriv1 = (Psi[matchPoint] - Psi[matchPoint - 1]) / numerov.function.GetDerivativeStep(matchPoint, 1);
-				double deriv2 = (Psi[nextPoint] - Psi[matchPoint]) / numerov.function.GetDerivativeStep(nextPoint, 1);
-				double topDelta = deriv1 - deriv2;
-
-				bool sgnTop = topDelta > 0;
-
-				bool didNotConverge = true;
-				for (int i = 0; i < 1000; ++i)
-				{
-					level.E = (TopEnergy + BottomEnergy) / 2;
-
-					Psi = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
-					Normalize(Psi, Rp, deltaGrid);
-					nextPoint = matchPoint + 1;
-					deriv1 = (Psi[matchPoint] - Psi[matchPoint - 1]) / numerov.function.GetDerivativeStep(matchPoint, 1);
-					deriv2 = (Psi[nextPoint] - Psi[matchPoint]) / numerov.function.GetDerivativeStep(nextPoint, 1);
-					const double delta = deriv1 - deriv2;
-
-					const double absdelta = abs(delta);
-
-					if ((delta > 0) == sgnTop)
-					{
-						// the same sign as 'top'
-						if (absdelta < abs(topDelta))
-						{
-							TopEnergy = level.E;
-							topDelta = delta;
-						}
-						else
-						{
-							BottomEnergy = level.E;
-						}
-					}
-					else
-					{
-						// different sign than 'top', the zero value is between them
-						BottomEnergy = level.E;						
-					}
-					
-					const double energyDiff = TopEnergy - BottomEnergy;
-					if (TopEnergy - BottomEnergy < energyErr && absdelta < derivErr && !isnan(absdelta))
-					{
-						didNotConverge = false;
-						break;
-					}
-				}
-				*/
-				
-				// ***************************************************************************************************************************
+				// locate the solution using the bisection method on the interval found above
 
 				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
-				const bool sgnA = delta > 0;
+				const bool sgnBottom = delta >= 0;
 
 				bool didNotConverge = true;
-				for (int i = 0; i < 1000; ++i)
+				for (int i = 0; i < 3000; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
 					delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
-					if ((delta > 0) == sgnA)
+					if ((delta >= 0) == sgnBottom)
 						BottomEnergy = level.E;
 					else
 						TopEnergy = level.E;
@@ -291,6 +236,7 @@ namespace DFT {
 				nuclear[i] = position * Z * density[i] * cnst;
 			}
 			const double Enuclear = -4 * M_PI * DFT::Integral::SimpsonOneThird(1, nuclear);
+			
 
 			// Exchange-correlation energy:
 			std::vector<double> exccor(NumGridNodes);
@@ -350,13 +296,14 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-8 && reallyConverged)
+			if (abs((Eold - Etotal) / Etotal) < 1E-8 && reallyConverged && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 
 				break;
 			}
 			Eold = Etotal;
+			lastTimeConverged = reallyConverged;
 
 			std::cout << "********************************************************************************" << std::endl;
 		}
