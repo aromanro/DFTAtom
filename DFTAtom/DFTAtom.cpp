@@ -159,7 +159,7 @@ namespace DFT {
 				const bool sgnBottom = delta >= 0;
 
 				bool didNotConverge = true;
-				for (int i = 0; i < 3000; ++i)
+				for (int i = 0; i < 1000; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
