@@ -111,7 +111,7 @@ namespace DFT {
 
 			// now full cycles until the error drops enough
 
-			double err = 1E10;
+			double err = 1E-10;
 			for (int i = 0; i < 100; ++i)
 			{
 				err = VCycle(lastLevel, errorMinLast, numSweeps);
