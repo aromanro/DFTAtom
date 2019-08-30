@@ -42,7 +42,7 @@ namespace DFT {
 	void DFTAtom::Calculate(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const char orb[] = { 's', 'p', 'd', 'f' };
-		static const double energyErr = 1E-12; 
+		static const double energyErr = 1E-10; 
 		static const double derivErr = 1E-4; //set to bigger if matching the derivative in the match point
 
 		const double oneMinusAlpha = 1. - alpha;
