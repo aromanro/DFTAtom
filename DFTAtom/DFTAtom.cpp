@@ -42,7 +42,7 @@ namespace DFT {
 	void DFTAtom::Calculate(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const char orb[] = { 's', 'p', 'd', 'f' };
-		static const double energyErr = 1E-10;
+		static const double energyErr = 1E-12; 
 		static const double derivErr = 1E-4; //set to bigger if matching the derivative in the match point
 
 		const double oneMinusAlpha = 1. - alpha;
@@ -226,7 +226,25 @@ namespace DFT {
 
 			// Nuclear energy:
 			std::vector<double> nuclear(NumGridNodes);
-			for (int i = 0; i < NumGridNodes; ++i)
+			
+			// Exchange-correlation energy:
+			std::vector<double> exccor(NumGridNodes);
+
+			std::vector<double> eexcDeriv = DFT::VWNExchCor::eexcDif(density);
+
+			// Hartree energy:
+			std::vector<double> hartree(NumGridNodes);
+
+			// potential energy:
+			std::vector<double> potentiale(NumGridNodes);
+
+			nuclear[0] = 0;
+			exccor[0] = 0;
+			eexcDeriv[0] = 0;
+			hartree[0] = 0;
+			potentiale[0] = 0;
+
+			for (int i = 1; i < NumGridNodes; ++i)
 			{
 				const double expD = exp(deltaGrid * i);
 				const double position = Rp * (expD - 1.);
@@ -234,61 +252,21 @@ namespace DFT {
 				const double cnst = Rp * deltaGrid * expD;
 
 				nuclear[i] = position * Z * density[i] * cnst;
-			}
-			const double Enuclear = -4 * M_PI * DFT::Integral::SimpsonOneThird(1, nuclear);
-			
-
-			// Exchange-correlation energy:
-			std::vector<double> exccor(NumGridNodes);
-			exccor[0] = 0;
-			for (int i = 1; i < NumGridNodes; ++i)
-			{
-				const double expD = exp(deltaGrid * i);
-				const double position = Rp * (expD - 1.);
-
-				const double cnst = Rp * deltaGrid * expD;
-
 				exccor[i] = position * position * density[i] * Vexc[i] * cnst;
-			}
-			double Exc = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, exccor);
-
-			std::vector<double> eexcDeriv = DFT::VWNExchCor::eexcDif(density);
-			exccor[0] = 0;
-			for (int i = 1; i < NumGridNodes; ++i)
-			{
-				const double expD = exp(deltaGrid * i);
-				const double position = Rp * (expD - 1.);
-
-				const double cnst = Rp * deltaGrid * expD;
-
-				exccor[i] = position * position * density[i] * eexcDeriv[i] * cnst;
-			}
-			const double eExcDif = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, exccor);
-			Exc += eExcDif;
-
-			// Hartree energy:
-			std::vector<double> hartree(NumGridNodes);
-			for (int i = 0; i < NumGridNodes; ++i)
-			{
-				const double expD = exp(deltaGrid * i);
-				const double position = Rp * (expD - 1.);
-
-				const double cnst = Rp * deltaGrid * expD;
-
+				eexcDeriv[i] = position * position * density[i] * eexcDeriv[i] * cnst;
 				hartree[i] = position * density[i] * UHartree[i] * cnst;
-			}
-			const double Ehartree = -2 * M_PI * DFT::Integral::SimpsonOneThird(1, hartree);
-
-			// potential energy:
-			std::vector<double> potentiale(NumGridNodes);
-			potentiale[0] = 0;
-			for (int i = 1; i < NumGridNodes; ++i) {
-				const double expD = exp(deltaGrid * i);
-				const double position = Rp * (expD - 1.);
-				const double cnst = Rp * deltaGrid * expD;
 
 				potentiale[i] = position * position * density[i] * potential.m_potentialValues[i] * cnst;
 			}
+
+			const double Enuclear = -4 * M_PI * DFT::Integral::SimpsonOneThird(1, nuclear);
+			double Exc = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, exccor);
+
+			const double eExcDif = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, eexcDeriv);
+			Exc += eExcDif;
+			
+			const double Ehartree = -2 * M_PI * DFT::Integral::SimpsonOneThird(1, hartree);
+
 			const double Epotential = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
