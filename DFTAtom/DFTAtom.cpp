@@ -42,7 +42,7 @@ namespace DFT {
 	void DFTAtom::Calculate(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const char orb[] = { 's', 'p', 'd', 'f' };
-		static const double energyErr = 1E-10; 
+		static const double energyErr = 1E-12; 
 		static const double derivErr = 1E-4; //set to bigger if matching the derivative in the match point
 
 		const double oneMinusAlpha = 1. - alpha;
@@ -127,7 +127,6 @@ namespace DFT {
 
 					deltaEnergy = toe - boe;
 				}
-				//toe -= energyErr;
 				toe -= deltaEnergy;
 
 				TopEnergy = toe;
@@ -148,7 +147,6 @@ namespace DFT {
 
 					deltaEnergy = toe - boe;
 				}
-				//BottomEnergy = boe + energyErr;
 				BottomEnergy = boe + deltaEnergy;
 				
 				// ***************************************************************************************************************************
@@ -170,7 +168,7 @@ namespace DFT {
 						TopEnergy = level.E;
 
 					const double absdelta = abs(delta);
-					if (TopEnergy - BottomEnergy < energyErr && absdelta < derivErr && !isnan(absdelta))
+					if (TopEnergy - BottomEnergy < energyErr /*&& absdelta < derivErr*/ && !isnan(absdelta))
 					{
 						didNotConverge = false;
 						break;
@@ -187,7 +185,6 @@ namespace DFT {
 				// now really solve it	
 				int matchPoint;
 				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
-				//std::vector<double> result = numerov.SolveSchrodingerSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps);
 				Normalize(result, Rp, deltaGrid);
 
 				std::cout << "Energy " << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
@@ -274,7 +271,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-8 && reallyConverged && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 

@@ -115,13 +115,16 @@ namespace DFT {
 
 		inline static double GetMaxRadius(double E)
 		{
-			return 323. / sqrt(2. * abs(E));
+			return 15. / sqrt(2. * abs(E));
 		}
 
 		inline double GetDerivativeStep(int posIndex, double h) const
 		{
 			return Rp * exp(posIndex * m_delta) * (1. - exp(-m_delta));
 		}
+
+		inline double GetRp() const { return Rp; }
+		inline double GetDelta() const { return m_delta; }
 	protected:
 		inline double GetPosition(int posIndex) const
 		{
@@ -258,7 +261,7 @@ namespace DFT {
 			solution = function.GetBoundaryValueFar(position, E);
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
-			
+
 			for (int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
@@ -274,7 +277,7 @@ namespace DFT {
 			}
 
 			solution = solution * (2 + h2 * funcVal) - prevSol;
-
+			
 			return solution;
 		}
 
@@ -337,8 +340,7 @@ namespace DFT {
 				Psi[i] = solution = getU(w, funcVal);
 
 				//const double effPotential = function.GetEffectivePotential(l, position, i);
-				// alternative: effPotential <= E
-				if (solution < Psi[i + 1] || abs(solution) > 1E150)
+				if (solution < Psi[i + 1] /*effPotential <= E*/ || abs(solution) > 1E50)
 				{
 					matchPoint = i;
 					break;
