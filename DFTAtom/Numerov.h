@@ -249,7 +249,7 @@ namespace DFT {
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
 				steps = static_cast<int>(startPoint / h);
 			}
-
+			
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
 		

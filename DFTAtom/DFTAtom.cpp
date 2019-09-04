@@ -43,7 +43,6 @@ namespace DFT {
 	{
 		static const char orb[] = { 's', 'p', 'd', 'f' };
 		static const double energyErr = 1E-12; 
-		static const double derivErr = 1E-4; //set to bigger if matching the derivative in the match point
 
 		const double oneMinusAlpha = 1. - alpha;
 		
@@ -127,7 +126,6 @@ namespace DFT {
 
 					deltaEnergy = toe - boe;
 				}
-				toe -= deltaEnergy;
 
 				TopEnergy = toe;
 
@@ -147,11 +145,16 @@ namespace DFT {
 
 					deltaEnergy = toe - boe;
 				}
-				BottomEnergy = boe + deltaEnergy;
-				
+				BottomEnergy = toe;
+
 				// ***************************************************************************************************************************
 
 				// locate the solution using the bisection method on the interval found above
+
+				// it's the shooting method, it's supposed to shoot for 'zero' in the origin
+				// sometimes it gets far away (whence the 1E15 comparison below)
+				// the errors are too big, the line with the comment 'now really solve it' shoots from both 'infinity' and zero, matching the solutions in between				
+				// there is another method that could be used, to shoot from both directions and do the match trying to have a fit for the derivative, for now I won't use it
 
 				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
 				const bool sgnBottom = delta >= 0;
@@ -166,14 +169,15 @@ namespace DFT {
 						BottomEnergy = level.E;
 					else
 						TopEnergy = level.E;
-
+					
 					const double absdelta = abs(delta);
-					if (TopEnergy - BottomEnergy < energyErr /*&& absdelta < derivErr*/ && !isnan(absdelta))
+					if (TopEnergy - BottomEnergy < energyErr && !isnan(absdelta) && absdelta < 1E15)
 					{
 						didNotConverge = false;
 						break;
 					}						
 				}
+				level.E = BottomEnergy;
 
 				// ***************************************************************************************************************************
 											
