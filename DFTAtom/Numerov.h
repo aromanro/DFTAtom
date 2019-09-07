@@ -7,7 +7,7 @@ namespace DFT {
 	class Potential
 	{
 	public:
-		inline double operator()(int posIndex) const { return m_potentialValues[posIndex]; };
+		inline double operator()(size_t posIndex) const { return m_potentialValues[posIndex]; };
 
 		std::vector<double> m_potentialValues;
 	};
@@ -16,14 +16,14 @@ namespace DFT {
 	class NumerovFunctionRegularGrid
 	{
 	public:
-		NumerovFunctionRegularGrid(const Potential& pot, double /*delta*/, double /*Rmax*/, int /*numPoints*/) : m_pot(pot) {}
+		NumerovFunctionRegularGrid(const Potential& pot, double /*delta*/, double /*Rmax*/, size_t /*numPoints*/) : m_pot(pot) {}
 
-		inline double GetEffectivePotential(unsigned int l, double position, int posIndex) const
+		inline double GetEffectivePotential(unsigned int l, double position, size_t posIndex) const
 		{
 			return m_pot(posIndex) + l * (l + 1.) / (position * position) * 0.5;
 		}
 
-		inline double operator()(unsigned int l, double E, double position, int posIndex) const
+		inline double operator()(unsigned int l, double E, double position, size_t posIndex) const
 		{
 			const double effectivePotential = GetEffectivePotential(l, position, posIndex);
 
@@ -63,7 +63,7 @@ namespace DFT {
 	class NumerovFunctionNonUniformGrid
 	{
 	public:
-		NumerovFunctionNonUniformGrid(const Potential& pot, double delta, double Rmax, int numPoints)
+		NumerovFunctionNonUniformGrid(const Potential& pot, double delta, double Rmax, size_t numPoints)
 			: m_pot(pot), m_delta(delta)
 		{
 			Rp = Rmax / (exp((numPoints - 1) * delta) - 1);
@@ -76,14 +76,14 @@ namespace DFT {
 			delta2p4 = delta2 / 4.;
 		}
 
-		inline double GetEffectivePotential(unsigned int l, double position, int posIndex) const
+		inline double GetEffectivePotential(unsigned int l, double position, size_t posIndex) const
 		{
 			position = GetPosition(posIndex); // the passed value is ignored, use the real one
 
 			return m_pot(posIndex) + l * (l + 1.) / (position * position) * 0.5;
 		}
 
-		inline double operator()(unsigned int l, double E, double position, int posIndex) const
+		inline double operator()(unsigned int l, double E, double position, size_t posIndex) const
 		{
 			const double effectivePotential = GetEffectivePotential(l, position, posIndex);
 
@@ -126,7 +126,7 @@ namespace DFT {
 		inline double GetRp() const { return Rp; }
 		inline double GetDelta() const { return m_delta; }
 	protected:
-		inline double GetPosition(int posIndex) const
+		inline double GetPosition(size_t posIndex) const
 		{
 			return Rp * (exp(posIndex * m_delta) - 1.);
 		}
@@ -145,10 +145,10 @@ namespace DFT {
 	template<class NumerovFunction> class Numerov
 	{
 	public:
-		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, int numPoints = 0) : function(pot, delta, Rmax, numPoints) {}
+		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, size_t numPoints = 0) : function(pot, delta, Rmax, numPoints), h(1), h2(1), h2p12(1. / 12.) {}
 
 
-		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, int steps, int nodesLimit, int& nodesCount)
+		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, size_t steps, size_t nodesLimit, int& nodesCount)
 		{			
 			if (startPoint == steps)
 			{
@@ -186,7 +186,7 @@ namespace DFT {
 			nodesCount = 0;
 
 			bool firstClassicalReturnPoint = false;
-			for (int i = steps - 2; i > 0; --i)
+			for (size_t i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -229,7 +229,7 @@ namespace DFT {
 			}
 		}
 
-		inline double SolveSchrodingerSolutionInZero(double startPoint, unsigned int l, double E, unsigned int steps)
+		inline double SolveSchrodingerSolutionInZero(double startPoint, unsigned int l, double E, size_t steps)
 		{
 			if (startPoint == steps)
 			{
@@ -262,7 +262,7 @@ namespace DFT {
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 
-			for (int i = steps - 2; i > 0; --i)
+			for (size_t i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -281,9 +281,9 @@ namespace DFT {
 			return solution;
 		}
 
-		inline std::vector<double> SolveSchrodingerMatchSolutionCompletely(double startPoint, unsigned int l, double E, int steps, int& matchPoint)
+		inline std::vector<double> SolveSchrodingerMatchSolutionCompletely(double startPoint, unsigned int l, double E, size_t steps, size_t& matchPoint)
 		{
-			const int highLimit = steps + 1;
+			const size_t highLimit = steps + 1;
 			std::vector<double> Psi(highLimit);
 
 			if (startPoint == steps)
@@ -304,14 +304,14 @@ namespace DFT {
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
 				steps = static_cast<int>(startPoint / h);				
 			}
-			for (long int i = steps + 1; i < highLimit; ++i)
+			for (size_t i = steps + 1; i < highLimit; ++i)
 				Psi[i] = 0;
 
 			h = startPoint / steps;
 			h2 = h * h;
 			h2p12 = h2 / 12.;
 
-			const int size = steps + 1;
+			const size_t size = steps + 1;
 			
 
 			double position = startPoint;
@@ -327,7 +327,7 @@ namespace DFT {
 			double w = (1 - h2p12 * funcVal) * solution;
 			
 			matchPoint = 2;
-			for (int i = steps - 2; i > 0; --i)
+			for (size_t i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -356,7 +356,7 @@ namespace DFT {
 			funcVal = function(l, E, position, 1);
 			w = (1 - h2p12 * funcVal) * solution;
 
-			for (int i = 2; i < matchPoint; ++i)
+			for (size_t i = 2; i < matchPoint; ++i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -377,7 +377,7 @@ namespace DFT {
 			const double factor = solution / Psi[matchPoint];
 			
 			Psi[matchPoint] = solution;
-			for (int i = matchPoint + 1; i < size; ++i)
+			for (size_t i = matchPoint + 1; i < size; ++i)
 				Psi[i] *= factor;
 
 			return Psi;

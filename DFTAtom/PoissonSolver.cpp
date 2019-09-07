@@ -45,7 +45,7 @@ namespace DFT {
 
 		const int limit = static_cast<int>(Phi.size() - 1);
 
-		for (int i = 1; i < limit; ++i)
+		for (size_t i = 1; i < limit; ++i)
 		{
 			const double savePhi = Phi[i];
 
@@ -112,9 +112,9 @@ namespace DFT {
 		assert(2 * (Phisrc.size() - 1) == Phidst.size() - 1);
 
 		Phidst[0] += Phisrc[0];
-		for (int i = 1; i < Phisrc.size(); ++i)
+		for (size_t i = 1; i < Phisrc.size(); ++i)
 		{
-			const int twoi = 2 * i;
+			const size_t twoi = 2 * i;
 
 			// correct the solution, use linear interpolation for 'in between' points
 			Phidst[twoi] += Phisrc[i];
@@ -137,9 +137,9 @@ namespace DFT {
 		for (int i = 0; i < Phidst.size(); ++i)
 			Phidst[i] = 0;
 
-		for (int i = 1; i < Sourcedst.size() - 1; ++i)
+		for (size_t i = 1; i < Sourcedst.size() - 1; ++i)
 		{
-			const int twoi = 2 * i;
+			const size_t twoi = 2 * i;
 
 			// the 'source' is multiplied by delta^2 (delta = h or step, 1 for the non-uniform case)
 			// but that means it needs adjusting the value with 4 when going to a coarser grid - for the source and second derivative
@@ -195,13 +195,13 @@ namespace DFT {
 
 	void PoissonSolver::FillR(std::vector<double>& R, double firstR, double lastR)
 	{
-		const int size = static_cast<int>(R.size());
+		const size_t size = static_cast<int>(R.size());
 
 		assert(size >= 3);
 
-		const int N = size - 1;
+		const size_t N = size - 1;
 
-		for (int i = 0; i < size; ++i)
+		for (size_t i = 0; i < size; ++i)
 			R[i] = (firstR * (N - i) + lastR * i) / N;
 	}
 

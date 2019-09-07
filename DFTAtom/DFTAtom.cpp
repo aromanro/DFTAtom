@@ -97,7 +97,7 @@ namespace DFT {
 
 			DFT::Numerov<DFT::NumerovFunctionNonUniformGrid> numerov(potential, deltaGrid, MaxR, NumGridNodes);
 			
-			double BottomEnergy = - Z * Z - 1;
+			double BottomEnergy = - double(Z) * Z - 1.;
 
 			bool reallyConverged = true;
 
@@ -187,7 +187,7 @@ namespace DFT {
 				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
 
 				// now really solve it	
-				int matchPoint;
+				size_t matchPoint;
 				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
 				Normalize(result, Rp, deltaGrid);
 
