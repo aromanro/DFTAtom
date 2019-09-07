@@ -217,14 +217,6 @@ namespace DFT {
 			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
 			Vexc = DFT::VWNExchCor::Vexc(density);
 
-			potential.m_potentialValues[0] = 0;
-			for (int i = 1; i < NumGridNodes; ++i)
-			{
-				const double position = Rp * (exp(i * deltaGrid) - 1.);
-
-				potential.m_potentialValues[i] = (-Z + UHartree[i]) / position + Vexc[i];
-			}
-
 			// Nuclear energy:
 			std::vector<double> nuclear(NumGridNodes);
 			
@@ -239,6 +231,7 @@ namespace DFT {
 			// potential energy:
 			std::vector<double> potentiale(NumGridNodes);
 
+			potential.m_potentialValues[0] = 0;
 			nuclear[0] = 0;
 			exccor[0] = 0;
 			eexcDeriv[0] = 0;
@@ -251,6 +244,8 @@ namespace DFT {
 				const double position = Rp * (expD - 1.);
 
 				const double cnst = Rp * deltaGrid * expD;
+
+				potential.m_potentialValues[i] = (-Z + UHartree[i]) / position + Vexc[i];
 
 				nuclear[i] = position * Z * density[i] * cnst;
 				exccor[i] = position * position * density[i] * Vexc[i] * cnst;
