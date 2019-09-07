@@ -115,7 +115,7 @@ namespace DFT {
 
 		inline static double GetMaxRadius(double E)
 		{
-			return 15. / sqrt(2. * abs(E));
+			return 12. / sqrt(2. * abs(E));
 		}
 
 		inline double GetDerivativeStep(int posIndex, double h) const
