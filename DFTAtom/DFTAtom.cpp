@@ -30,7 +30,7 @@ namespace DFT {
 			result2[i] *= cnst;
 		}
 
-		const double integralForSquare = DFT::Integral::SimpsonOneThird(1, result2); // for nonuniform case the step is 1
+		const double integralForSquare = DFT::Integral::Boole(1, result2); // for nonuniform case the step is 1
 		const double norm = sqrt(integralForSquare);
 
 		for (int i = 0; i < Psi.size(); ++i)
@@ -255,15 +255,15 @@ namespace DFT {
 				potentiale[i] = position * position * density[i] * potential.m_potentialValues[i] * cnst;
 			}
 
-			const double Enuclear = -4 * M_PI * DFT::Integral::SimpsonOneThird(1, nuclear);
-			double Exc = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, exccor);
+			const double Enuclear = -4 * M_PI * DFT::Integral::Boole(1, nuclear);
+			double Exc = 4 * M_PI * DFT::Integral::Boole(1, exccor);
 
-			const double eExcDif = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, eexcDeriv);
+			const double eExcDif = 4 * M_PI * DFT::Integral::Boole(1, eexcDeriv);
 			Exc += eExcDif;
 			
-			const double Ehartree = -2 * M_PI * DFT::Integral::SimpsonOneThird(1, hartree);
+			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(1, hartree);
 
-			const double Epotential = 4 * M_PI * DFT::Integral::SimpsonOneThird(1, potentiale);
+			const double Epotential = 4 * M_PI * DFT::Integral::Boole(1, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
