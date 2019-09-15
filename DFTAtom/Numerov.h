@@ -149,7 +149,7 @@ namespace DFT {
 
 
 
-		inline void SolveSchrodingerCountNodesFromNucleus(double endPoint, unsigned int l, double E, size_t steps, size_t nodesLimit, int& nodesCount)
+		inline void SolveSchrodingerCountNodesFromNucleus(double endPoint, unsigned int l, double E, long int steps, long int nodesLimit, int& nodesCount)
 		{
 			if (endPoint == steps)
 			{
@@ -158,7 +158,7 @@ namespace DFT {
 				h2p12 = 1. / 12.;
 
 				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E));
-				steps = static_cast<int>(endPoint);
+				steps = static_cast<long int>(endPoint);
 			}
 			else
 			{
@@ -167,7 +167,7 @@ namespace DFT {
 				h2p12 = h2 / 12.;
 
 				endPoint = std::min(endPoint, function.GetMaxRadius(E));
-				steps = static_cast<int>(endPoint / h);
+				steps = static_cast<long int>(endPoint / h);
 			}
 
 
@@ -187,7 +187,7 @@ namespace DFT {
 			double effPotential = function.GetEffectivePotential(l, position, 1);
 			bool firstClassicalReturnPoint = effPotential <= E;
 
-			for (size_t i = 2; i <= steps; ++i)
+			for (long int i = 2; i <= steps; ++i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -222,16 +222,16 @@ namespace DFT {
 
 		}
 
-		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, size_t steps, size_t nodesLimit, int& nodesCount)
+		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, long int steps, long int nodesLimit, int& nodesCount)
 		{
-			if (static_cast<size_t>(startPoint) == steps)
+			if (static_cast<long int>(startPoint) == steps)
 			{
 				h = 1;
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
 				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
-				steps = static_cast<int>(startPoint);
+				steps = static_cast<long int>(startPoint);
 			}
 			else
 			{
@@ -240,7 +240,7 @@ namespace DFT {
 				h2p12 = h2 / 12.;
 
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
-				steps = static_cast<int>(startPoint / h);
+				steps = static_cast<long int>(startPoint / h);
 			}
 
 
@@ -260,7 +260,7 @@ namespace DFT {
 			nodesCount = 0;
 
 			bool firstClassicalReturnPoint = false;
-			for (size_t i = steps - 2; i > 0; --i)
+			for (long int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -303,16 +303,16 @@ namespace DFT {
 			}
 		}
 
-		inline double SolveSchrodingerSolutionInZero(double startPoint, unsigned int l, double E, size_t steps)
+		inline double SolveSchrodingerSolutionInZero(double startPoint, unsigned int l, double E, long int steps)
 		{
-			if (static_cast<size_t>(startPoint) == steps)
+			if (static_cast<long int>(startPoint) == steps)
 			{
 				h = 1;
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
 				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
-				steps = static_cast<int>(startPoint);
+				steps = static_cast<long int>(startPoint);
 			}
 			else
 			{
@@ -321,7 +321,7 @@ namespace DFT {
 				h2p12 = h2 / 12.;
 
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
-				steps = static_cast<int>(startPoint / h);
+				steps = static_cast<long int>(startPoint / h);
 			}
 
 			double position = startPoint;
@@ -336,7 +336,7 @@ namespace DFT {
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 
-			for (size_t i = steps - 2; i > 0; --i)
+			for (long int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -355,19 +355,19 @@ namespace DFT {
 			return solution;
 		}
 
-		inline std::vector<double> SolveSchrodingerMatchSolutionCompletely(double startPoint, unsigned int l, double E, size_t steps, size_t& matchPoint)
+		inline std::vector<double> SolveSchrodingerMatchSolutionCompletely(double startPoint, unsigned int l, double E, long int steps, long int& matchPoint)
 		{
-			const size_t highLimit = steps + 1;
+			const long int highLimit = steps + 1;
 			std::vector<double> Psi(highLimit);
 
-			if (static_cast<size_t>(startPoint) == steps)
+			if (static_cast<long int>(startPoint) == steps)
 			{
 				h = 1;
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
 				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
-				steps = static_cast<int>(startPoint);
+				steps = static_cast<long int>(startPoint);
 			}
 			else
 			{
@@ -376,16 +376,16 @@ namespace DFT {
 				h2p12 = h2 / 12.;
 
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
-				steps = static_cast<int>(startPoint / h);
+				steps = static_cast<long int>(startPoint / h);
 			}
-			for (size_t i = steps + 1; i < highLimit; ++i)
+			for (long int i = steps + 1; i < highLimit; ++i)
 				Psi[i] = 0;
 
 			h = startPoint / steps;
 			h2 = h * h;
 			h2p12 = h2 / 12.;
 
-			const size_t size = steps + 1;
+			const long int size = steps + 1;
 
 
 			double position = startPoint;
@@ -401,7 +401,7 @@ namespace DFT {
 			double w = (1 - h2p12 * funcVal) * solution;
 
 			matchPoint = 2;
-			for (size_t i = steps - 2; i > 0; --i)
+			for (long int i = steps - 2; i > 0; --i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -431,7 +431,7 @@ namespace DFT {
 			funcVal = function(l, E, position, 1);
 			w = (1 - h2p12 * funcVal) * solution;
 
-			for (size_t i = 2; i < matchPoint; ++i)
+			for (long int i = 2; i < matchPoint; ++i)
 			{
 				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
 
@@ -452,7 +452,7 @@ namespace DFT {
 			const double factor = solution / Psi[matchPoint];
 
 			Psi[matchPoint] = solution;
-			for (size_t i = matchPoint + 1; i < size; ++i)
+			for (long int i = matchPoint + 1; i < size; ++i)
 				Psi[i] *= factor;
 
 			return std::move(Psi);

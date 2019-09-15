@@ -87,6 +87,7 @@ namespace DFT {
 
 		bool lastTimeConverged = false;
 
+		
 		for (int sp = 0; sp < 100; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
@@ -97,14 +98,13 @@ namespace DFT {
 
 			DFT::Numerov<DFT::NumerovFunctionNonUniformGrid> numerov(potential, deltaGrid, MaxR, NumGridNodes);
 			
-			double BottomEnergy = - double(Z) * Z - 1.;
-
 			bool reallyConverged = true;
+			double BottomEnergy = -double(Z) * Z - 1.;
 
 			for (auto& level : levels)
 			{
 				const int NumNodes = level.m_N - level.m_L;
-
+				
 				double TopEnergy = 50;
 				
 				// locate the interval to search into by using the number of nodes of the wavefunction
@@ -186,7 +186,7 @@ namespace DFT {
 				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
 
 				// now really solve it	
-				size_t matchPoint;
+				long int matchPoint;
 				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
 				Normalize(result, Rp, deltaGrid);
 
