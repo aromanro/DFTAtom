@@ -126,7 +126,6 @@ namespace DFT {
 
 					deltaEnergy = toe - boe;
 				}
-
 				TopEnergy = toe;
 
 				boe = BottomEnergy;
@@ -157,7 +156,7 @@ namespace DFT {
 				// there is another method that could be used, to shoot from both directions and do the match trying to have a fit for the derivative, for now I won't use it
 
 				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
-				const bool sgnBottom = delta >= 0;
+				const bool sgnBottom = delta > 0;
 
 				bool didNotConverge = true;
 				for (int i = 0; i < 1000; ++i)
@@ -165,7 +164,7 @@ namespace DFT {
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
 					delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
-					if ((delta >= 0) == sgnBottom)
+					if ((delta > 0) == sgnBottom)
 						BottomEnergy = level.E;
 					else
 						TopEnergy = level.E;

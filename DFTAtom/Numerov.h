@@ -35,14 +35,14 @@ namespace DFT {
 			return exp(-position * sqrt(2. * abs(E))); //not tested!
 		}
 
-		inline static double GetBoundaryValueZero(double position, int l)
+		inline static double GetBoundaryValueZero(double position, unsigned int l)
 		{
-			return pow(position, l + 1);
+			return pow(position, static_cast<size_t>(l) + 1);
 		}
 
-		inline static int GetMaxRadiusIndex(double E, double stepSize)
+		inline static double GetMaxRadiusIndex(double E, double stepSize)
 		{
-			return static_cast<int>(GetMaxRadius(E) / stepSize);
+			return GetMaxRadius(E) / stepSize;
 		}
 
 		inline static double GetDerivativeStep(int posIndex, double h)
@@ -53,7 +53,7 @@ namespace DFT {
 	protected:
 		inline static double GetMaxRadius(double E)
 		{
-			return 323. / sqrt(2. * abs(E));
+			return 12. / sqrt(2. * abs(E));
 		}
 
 		const Potential& m_pot;
@@ -93,24 +93,24 @@ namespace DFT {
 		inline double GetBoundaryValueFar(double position, double E) const
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
-			
+
 			return exp(-realPosition * sqrt(2. * abs(E)));
 		}
 
-		inline double GetBoundaryValueZero(double position, int l) const
+		inline double GetBoundaryValueZero(double position, unsigned int l) const
 		{
-			const int posInd = static_cast<int>(position);			
+			const int posInd = static_cast<int>(position);
 			const double realPosition = GetPosition(posInd);
 
-			return pow(realPosition, l + 1) * exp(-position * m_delta * 0.5);
+			return pow(realPosition, static_cast<size_t>(l) + 1) * exp(-position * m_delta * 0.5);
 		}
 
 
-		inline int GetMaxRadiusIndex(double E) const
-		{			 
+		inline double GetMaxRadiusIndex(double E) const
+		{
 			const double maxRadius = GetMaxRadius(E);
 
-			return static_cast<int>(log(maxRadius / Rp + 1.) / m_delta);
+			return log(maxRadius / Rp + 1.) / m_delta;
 		}
 
 		inline static double GetMaxRadius(double E)
@@ -148,15 +148,89 @@ namespace DFT {
 		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, size_t numPoints = 0) : function(pot, delta, Rmax, numPoints), h(1), h2(1), h2p12(1. / 12.) {}
 
 
-		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, size_t steps, size_t nodesLimit, int& nodesCount)
-		{			
-			if (startPoint == steps)
+
+		inline void SolveSchrodingerCountNodesFromNucleus(double endPoint, unsigned int l, double E, size_t steps, size_t nodesLimit, int& nodesCount)
+		{
+			if (endPoint == steps)
 			{
 				h = 1;
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
+				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E));
+				steps = static_cast<int>(endPoint);
+			}
+			else
+			{
+				h = endPoint / steps;
+				h2 = h * h;
+				h2p12 = h2 / 12.;
+
+				endPoint = std::min(endPoint, function.GetMaxRadius(E));
+				steps = static_cast<int>(endPoint / h);
+			}
+
+
+			double position = 0;
+			double prevSol = 0;
+			double solution = 0;
+			double wprev = 0;
+
+			position += h;
+			solution = function.GetBoundaryValueZero(position, l);
+			double funcVal = function(l, E, position, 1);
+			double w = (1 - h2p12 * funcVal) * solution;
+
+			bool oldSgn = (solution > 0);
+			nodesCount = 0;
+
+			double effPotential = function.GetEffectivePotential(l, position, 1);
+			bool firstClassicalReturnPoint = effPotential <= E;
+
+			for (size_t i = 2; i <= steps; ++i)
+			{
+				const double wnext = 2. * w - wprev + h2 * solution * funcVal;
+
+				position = h * i;
+
+				wprev = w;
+				w = wnext;
+
+				funcVal = function(l, E, position, i);
+				solution = getU(w, funcVal);
+
+				if (abs(solution) == std::numeric_limits<double>::infinity())
+					return;
+
+				const bool newSgn = (solution > 0);
+				if (newSgn != oldSgn)
+				{
+					++nodesCount;
+					if (nodesCount > nodesLimit)
+						return;
+
+					oldSgn = newSgn;
+				}
+
+				// bail out if hitting the classical turning point
+				effPotential = function.GetEffectivePotential(l, position, i);
+				if (effPotential <= E)
+					firstClassicalReturnPoint = true;
+				else if (firstClassicalReturnPoint && effPotential > E)
+					return;
+			}
+
+		}
+
+		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, size_t steps, size_t nodesLimit, int& nodesCount)
+		{
+			if (static_cast<size_t>(startPoint) == steps)
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
+
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
 				steps = static_cast<int>(startPoint);
 			}
 			else
@@ -164,15 +238,15 @@ namespace DFT {
 				h = startPoint / steps;
 				h2 = h * h;
 				h2p12 = h2 / 12.;
-			
+
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
 				steps = static_cast<int>(startPoint / h);
 			}
-			
+
 
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
-		
+
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
 			double wprev = (1 - h2p12 * funcVal) * solution;
@@ -218,9 +292,9 @@ namespace DFT {
 				if (effPotential <= E)
 					firstClassicalReturnPoint = true;
 				else if (firstClassicalReturnPoint && effPotential > E)
-					return;				
+					return;
 			}
-						
+
 			if (nodesCount <= nodesLimit)
 			{
 				solution = solution * (2 + h2 * funcVal) - prevSol;
@@ -231,13 +305,13 @@ namespace DFT {
 
 		inline double SolveSchrodingerSolutionInZero(double startPoint, unsigned int l, double E, size_t steps)
 		{
-			if (startPoint == steps)
+			if (static_cast<size_t>(startPoint) == steps)
 			{
 				h = 1;
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
 				steps = static_cast<int>(startPoint);
 			}
 			else
@@ -245,14 +319,14 @@ namespace DFT {
 				h = startPoint / steps;
 				h2 = h * h;
 				h2p12 = h2 / 12.;
-			
+
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
 				steps = static_cast<int>(startPoint / h);
 			}
-			
+
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
-		
+
 			double prevSol = solution;
 			double funcVal = function(l, E, position, steps);
 			double wprev = (1 - h2p12 * funcVal) * solution;
@@ -277,7 +351,7 @@ namespace DFT {
 			}
 
 			solution = solution * (2 + h2 * funcVal) - prevSol;
-			
+
 			return solution;
 		}
 
@@ -286,13 +360,13 @@ namespace DFT {
 			const size_t highLimit = steps + 1;
 			std::vector<double> Psi(highLimit);
 
-			if (startPoint == steps)
+			if (static_cast<size_t>(startPoint) == steps)
 			{
 				h = 1;
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(static_cast<int>(startPoint), function.GetMaxRadiusIndex(E));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
 				steps = static_cast<int>(startPoint);
 			}
 			else
@@ -300,9 +374,9 @@ namespace DFT {
 				h = startPoint / steps;
 				h2 = h * h;
 				h2p12 = h2 / 12.;
-			
+
 				startPoint = std::min(startPoint, function.GetMaxRadius(E));
-				steps = static_cast<int>(startPoint / h);				
+				steps = static_cast<int>(startPoint / h);
 			}
 			for (size_t i = steps + 1; i < highLimit; ++i)
 				Psi[i] = 0;
@@ -312,7 +386,7 @@ namespace DFT {
 			h2p12 = h2 / 12.;
 
 			const size_t size = steps + 1;
-			
+
 
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
@@ -325,7 +399,7 @@ namespace DFT {
 			Psi[steps - 1] = solution = function.GetBoundaryValueFar(position, E);
 			funcVal = function(l, E, position, steps - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
-			
+
 			matchPoint = 2;
 			for (size_t i = steps - 2; i > 0; --i)
 			{
@@ -336,15 +410,16 @@ namespace DFT {
 				wprev = w;
 				w = wnext;
 
-				funcVal = function(l, E, position, i);				
+				funcVal = function(l, E, position, i);
 				Psi[i] = solution = getU(w, funcVal);
 
-				//const double effPotential = function.GetEffectivePotential(l, position, i);
-				if (solution < Psi[i + 1] /*effPotential <= E*/ || abs(solution) > 1E50)
+				//const double effPotential = function.GetEffectivePotential(l, position, i);				
+				if (solution < Psi[i + 1] /*effPotential <= E*/ || abs(solution) > 1E15)
 				{
 					matchPoint = i;
 					break;
 				}
+
 			}
 
 			position = 0;
@@ -365,22 +440,22 @@ namespace DFT {
 				wprev = w;
 				w = wnext;
 
-				funcVal = function(l, E, position, i);				
+				funcVal = function(l, E, position, i);
 				Psi[i] = solution = getU(w, funcVal);
 			}
-			
+
 			w = 2. * w - wprev + h2 * solution * funcVal;
 			position = h * matchPoint;
-			funcVal = function(l, E, position, matchPoint);				
+			funcVal = function(l, E, position, matchPoint);
 			solution = getU(w, funcVal);
 
 			const double factor = solution / Psi[matchPoint];
-			
+
 			Psi[matchPoint] = solution;
 			for (size_t i = matchPoint + 1; i < size; ++i)
 				Psi[i] *= factor;
 
-			return Psi;
+			return std::move(Psi);
 		}
 
 		NumerovFunction function;
