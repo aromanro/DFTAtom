@@ -87,7 +87,7 @@ namespace DFT {
 
 		bool lastTimeConverged = false;
 
-		for (int sp = 0; sp < 500; ++sp)
+		for (int sp = 0; sp < 100; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
 

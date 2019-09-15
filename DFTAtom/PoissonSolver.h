@@ -40,7 +40,7 @@ namespace DFT {
 
 			SetBoundaries(0, Z);
 
-			FullCycle(1E-3, 1E-10);
+			FullCycle(1E-3, 1E-12);
 
 			return PhiLevels[0];
 		}
@@ -72,7 +72,7 @@ namespace DFT {
 
 			SetBoundaries(0, Z);
 
-			FullCycle(1E-3, 1E-10);
+			FullCycle(1E-3, 1E-12);
 
 			return PhiLevels[0];
 		}
@@ -111,7 +111,7 @@ namespace DFT {
 
 			// now full cycles until the error drops enough
 
-			double err = 1E-14;
+			double err;
 			for (int i = 0; i < 100; ++i)
 			{
 				err = VCycle(lastLevel, errorMinLast, numSweeps);
