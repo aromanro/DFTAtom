@@ -50,11 +50,11 @@ namespace DFT {
 			return h;
 		}
 
-	protected:
 		inline static double GetMaxRadius(double E)
 		{
-			return 12. / sqrt(2. * abs(E));
+			return 200. / sqrt(2. * abs(E));
 		}
+	protected:
 
 		const Potential& m_pot;
 	};
@@ -106,7 +106,7 @@ namespace DFT {
 		}
 
 
-		inline double GetMaxRadiusIndex(double E) const
+		inline double GetMaxRadiusIndex(double E, double /*stepSize*/) const
 		{
 			const double maxRadius = GetMaxRadius(E);
 
@@ -115,7 +115,7 @@ namespace DFT {
 
 		inline static double GetMaxRadius(double E)
 		{
-			return 12. / sqrt(2. * abs(E));
+			return 160. / sqrt(2. * abs(E));
 		}
 
 		inline double GetDerivativeStep(int posIndex, double h) const
@@ -157,7 +157,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E));
+				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E, 1));
 				steps = static_cast<long int>(endPoint);
 			}
 			else
@@ -230,7 +230,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, 1));
 				steps = static_cast<long int>(startPoint);
 			}
 			else
@@ -253,7 +253,7 @@ namespace DFT {
 
 			position -= h;
 			solution = function.GetBoundaryValueFar(position, E);
-			funcVal = function(l, E, position, steps - 1);
+			funcVal = function(l, E, position, static_cast<size_t>(steps) - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 
 			bool oldSgn = (solution > 0);
@@ -311,7 +311,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, 1));
 				steps = static_cast<long int>(startPoint);
 			}
 			else
@@ -333,7 +333,7 @@ namespace DFT {
 
 			position -= h;
 			solution = function.GetBoundaryValueFar(position, E);
-			funcVal = function(l, E, position, steps - 1);
+			funcVal = function(l, E, position, static_cast<size_t>(steps) - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 
 			for (long int i = steps - 2; i > 0; --i)
@@ -366,7 +366,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, 1));
 				steps = static_cast<long int>(startPoint);
 			}
 			else
@@ -396,8 +396,8 @@ namespace DFT {
 			double wprev = (1 - h2p12 * funcVal) * solution;
 
 			position -= h;
-			Psi[steps - 1] = solution = function.GetBoundaryValueFar(position, E);
-			funcVal = function(l, E, position, steps - 1);
+			Psi[static_cast<size_t>(steps) - 1] = solution = function.GetBoundaryValueFar(position, E);
+			funcVal = function(l, E, position, static_cast<size_t>(steps) - 1);
 			double w = (1 - h2p12 * funcVal) * solution;
 
 			matchPoint = 2;
@@ -414,7 +414,7 @@ namespace DFT {
 				Psi[i] = solution = getU(w, funcVal);
 
 				//const double effPotential = function.GetEffectivePotential(l, position, i);				
-				if (solution < Psi[i + 1] /*effPotential <= E*/ || abs(solution) > 1E15)
+				if (solution < Psi[static_cast<size_t>(i) + 1] /*effPotential <= E*/ || abs(solution) > 1E15)
 				{
 					matchPoint = i;
 					break;
