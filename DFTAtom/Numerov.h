@@ -94,7 +94,7 @@ namespace DFT {
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
 
-			return exp(-realPosition * sqrt(2. * abs(E)));
+			return exp(-realPosition * (sqrt(2. * abs(E)) + m_delta * 0.5));
 		}
 
 		inline double GetBoundaryValueZero(double position, unsigned int l) const
@@ -113,9 +113,9 @@ namespace DFT {
 			return log(maxRadius / Rp + 1.) / m_delta;
 		}
 
-		inline static double GetMaxRadius(double E)
+		inline double GetMaxRadius(double E) const
 		{
-			return 160. / sqrt(2. * abs(E));
+			return 200. / (sqrt(2. * abs(E)) + m_delta * 0.5);
 		}
 
 		inline double GetDerivativeStep(int posIndex, double h) const
