@@ -32,7 +32,7 @@ namespace DFT {
 
 		inline static double GetBoundaryValueFar(double position, double E)
 		{
-			return exp(-position * sqrt(2. * abs(E))); //not tested!
+			return exp(-position * sqrt(2. * abs(E)));
 		}
 
 		inline static double GetBoundaryValueZero(double position, unsigned int l)
@@ -40,9 +40,9 @@ namespace DFT {
 			return pow(position, static_cast<size_t>(l) + 1);
 		}
 
-		inline static double GetMaxRadiusIndex(double E, double stepSize)
+		inline static double GetMaxRadiusIndex(double E, size_t maxIndex, double stepSize)
 		{
-			return GetMaxRadius(E) / stepSize;
+			return std::min(GetMaxRadius(E, maxIndex) / stepSize, static_cast<double>(maxIndex));
 		}
 
 		inline static double GetDerivativeStep(int posIndex, double h)
@@ -50,7 +50,7 @@ namespace DFT {
 			return h;
 		}
 
-		inline static double GetMaxRadius(double E)
+		inline static double GetMaxRadius(double E, size_t maxIndex)
 		{
 			return 200. / sqrt(2. * abs(E));
 		}
@@ -106,16 +106,35 @@ namespace DFT {
 		}
 
 
-		inline double GetMaxRadiusIndex(double E, double /*stepSize*/) const
+		inline double GetMaxRadiusIndex(double E, size_t maxIndex, double /*stepSize*/) const
 		{
-			const double maxRadius = GetMaxRadius(E);
+			for (size_t i = 1; i < maxIndex; ++i)
+			{
+				const double val = GetBoundaryValueFar(static_cast<double>(i), E);
 
-			return log(maxRadius / Rp + 1.) / m_delta;
+				if (val <= 1E-160) return static_cast<double>(i);
+			}
+
+			return static_cast<double>(maxIndex);
 		}
 
-		inline double GetMaxRadius(double E) const
+		inline double GetMaxRadius(double E, size_t maxIndex) const
 		{
-			return 160. / sqrt(2. * abs(E));
+			for (size_t i = 1; i < maxIndex; ++i)
+			{
+				const double val = GetBoundaryValueFar(static_cast<double>(i), E);
+
+				if (val <= 1E-160)
+				{
+					const double position = Rp * (exp(i * m_delta) - 1.);
+					
+					return position;
+				}
+			}
+			
+			const double position = Rp * (exp(maxIndex * m_delta) - 1.);
+
+			return position;
 		}
 
 		inline double GetDerivativeStep(int posIndex, double h) const
@@ -157,7 +176,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E, 1));
+				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E, steps, 1));
 				steps = static_cast<long int>(endPoint);
 			}
 			else
@@ -230,7 +249,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, 1));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
 				steps = static_cast<long int>(startPoint);
 			}
 			else
@@ -239,7 +258,7 @@ namespace DFT {
 				h2 = h * h;
 				h2p12 = h2 / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadius(E));
+				startPoint = std::min(startPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(startPoint / h);
 			}
 
@@ -311,7 +330,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, 1));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
 				steps = static_cast<long int>(startPoint);
 			}
 			else
@@ -320,7 +339,7 @@ namespace DFT {
 				h2 = h * h;
 				h2p12 = h2 / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadius(E));
+				startPoint = std::min(startPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(startPoint / h);
 			}
 
@@ -366,7 +385,7 @@ namespace DFT {
 				h2 = 1;
 				h2p12 = 1. / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, 1));
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
 				steps = static_cast<long int>(startPoint);
 			}
 			else
@@ -375,7 +394,7 @@ namespace DFT {
 				h2 = h * h;
 				h2p12 = h2 / 12.;
 
-				startPoint = std::min(startPoint, function.GetMaxRadius(E));
+				startPoint = std::min(startPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(startPoint / h);
 			}
 			for (long int i = steps + 1; i < highLimit; ++i)
