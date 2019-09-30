@@ -16,51 +16,53 @@ As it's LDA and there is the assumption of spherical symmetry (for non occupied 
 Here is what I get in a bad scenario, Radon:
 
 ```
-Step: 30
-Energy 1s: -3204.75628989 Num nodes: 0
-Energy 2s: -546.577961043 Num nodes: 1
-Energy 2p: -527.533025582 Num nodes: 0
-Energy 3s: -133.369144877 Num nodes: 2
-Energy 3p: -124.172862662 Num nodes: 1
-Energy 3d: -106.945006745 Num nodes: 0
-Energy 4s: -31.2308037361 Num nodes: 3
-Energy 4p: -27.1089853949 Num nodes: 2
-Energy 4d: -19.4499946095 Num nodes: 1
-Energy 4f: -8.95331838731 Num nodes: 0
-Energy 5s: -5.88968288409 Num nodes: 4
-Energy 5p: -4.40870276841 Num nodes: 3
-Energy 5d: -1.91132962721 Num nodes: 2
-Energy 6s: -0.626570717299 Num nodes: 5
-Energy 6p: -0.293180028208 Num nodes: 4
-Etotal = -21861.3469009 Ekin = 21854.6727109 Ecoul = 8632.01604025 Eenuc = -51966.1203978 Exc = -381.915254228
+Step: 27
+Energy 1s: -3204.75628853 Num nodes: 0
+Energy 2s: -546.577960761 Num nodes: 1
+Energy 2p: -527.533025217 Num nodes: 0
+Energy 3s: -133.369144942 Num nodes: 2
+Energy 3p: -124.172862712 Num nodes: 1
+Energy 3d: -106.9450068 Num nodes: 0
+Energy 4s: -31.2308038818 Num nodes: 3
+Energy 4p: -27.1089855361 Num nodes: 2
+Energy 4d: -19.449994751 Num nodes: 1
+Energy 4f: -8.95331853612 Num nodes: 0
+Energy 5s: -5.88968298422 Num nodes: 4
+Energy 5p: -4.40870286634 Num nodes: 3
+Energy 5d: -1.91132971988 Num nodes: 2
+Energy 6s: -0.626570786656 Num nodes: 5
+Energy 6p: -0.293180096137 Num nodes: 4
+Etotal = -21861.3469059 Ekin = 21854.6726735 Ecoul = 8632.01604286 Eenuc = -51966.1203681 Exc = -381.915254187
 
 Finished!
 
-1s2 2s2 2p6 3s2 3p6 3d10 4s2 4p6 4d10 4f14 5s2 5p6 5d10 6s2 6p6 1s2 2s2 2p6 3s2 3p6 3d10 4s2 4p6 4d10 4f14 5s2 5p6 5d10 6s2 6p6 
+1s2 2s2 2p6 3s2 3p6 3d10 4s2 4p6 4d10 4f14 5s2 5p6 5d10 6s2 6p6 
 ```
 
-I used 16 for 'multigrid levels' (that means 65537 nodes) 0.0002 for delta, mixing 0.5 and the max radius 50.
-The results are not perfect, I guess with some other parameters they might be improved somewhat. I might improve it more in the future.
+I used 17 for 'multigrid levels' (that means 131073 nodes) 0.0001 for delta, mixing 0.5 and the max radius 50.
+The results are not perfect, I guess with some other parameters they might be improved somewhat. The energy levels usually get all decimals given by NIST right, but occasionally the last one is wrong.
+The problem is for total energies, the total energy get three decimals right, the partial ones get three or four decimals right. 
 Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-radon
 
 For a lighter noble gas I get better results, for Argon for example:
 
 ```
-Step: 28
-Energy 1s: -113.800134596 Num nodes: 0
-Energy 2s: -10.794172463 Num nodes: 1
-Energy 2p: -8.44343931482 Num nodes: 0
-Energy 3s: -0.883384105504 Num nodes: 2
-Energy 3p: -0.382330146447 Num nodes: 1
-Etotal = -525.946200915 Ekin = 524.969815291 Ecoul = 231.458124025 Eenuc = -1253.13198594 Exc = -29.2421542868
+********************************************************************************
+Step: 29
+Energy 1s: -113.800134222 Num nodes: 0
+Energy 2s: -10.7941723904 Num nodes: 1
+Energy 2p: -8.44343924178 Num nodes: 0
+Energy 3s: -0.88338408662 Num nodes: 2
+Energy 3p: -0.382330129715 Num nodes: 1
+Etotal = -525.946199815 Ekin = 524.969812556 Ecoul = 231.45812437 Eenuc = -1253.13198253 Exc = -29.2421542116
 
 Finished!
 
-1s2 2s2 2p6 3s2 3p6 
+1s2 2s2 2p6 3s2 3p6  
 ```
 
-I used 15 for 'multigrid levels' (that means 32769 nodes), 0.0005 for delta, mixing 0.5 and the max radius 25.
-The energy levels results match all given decimals from NIST.
+I used 14 for 'multigrid levels' (that means 16385 nodes), 0.0005 for delta, mixing 0.5 and the max radius 25.
+The energy levels results match all given decimals from NIST. The total energy get five decimals right, the kinetic, coulomb and nuclear energies even six, the exchange correlation one seems to be the worse, with only four decimals (maybe there is room for improvement there?).
 
 Here is the NIST data for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-argon
 

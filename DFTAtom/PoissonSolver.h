@@ -40,7 +40,7 @@ namespace DFT {
 
 			SetBoundaries(0, Z);
 
-			FullCycle(1E-3, 1E-12);
+			FullCycle(1E-3, 1E-14);
 
 			return PhiLevels[0];
 		}
@@ -72,7 +72,7 @@ namespace DFT {
 
 			SetBoundaries(0, Z);
 
-			FullCycle(1E-3, 1E-12);
+			FullCycle(1E-3, 1E-14);
 
 			return PhiLevels[0];
 		}

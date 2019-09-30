@@ -109,26 +109,26 @@ namespace DFT {
 		inline double GetMaxRadiusIndex(double E, size_t maxIndex, double /*stepSize*/) const
 		{
 			double val = GetBoundaryValueFar(static_cast<double>(maxIndex), E);
-			if (val > 1E-180) static_cast<double>(maxIndex);
+			if (val > MaxRadiusLimit) static_cast<double>(maxIndex);
 
 			size_t minIndex = 1;
 			while (maxIndex - minIndex > 1)
 			{
 				const size_t midIndex = (maxIndex + minIndex) / 2;
 				val = GetBoundaryValueFar(static_cast<double>(midIndex), E);
-				if (val < 1E-180)
+				if (val < MaxRadiusLimit)
 					maxIndex = midIndex;
 				else
 					minIndex = midIndex;
 			}
 
-			return static_cast<double>(minIndex);
+			return static_cast<double>(maxIndex);
 		}
 
 		inline double GetMaxRadius(double E, size_t maxIndex) const
 		{
 			double val = GetBoundaryValueFar(static_cast<double>(maxIndex), E);
-			if (val <= 1E-180)
+			if (val > MaxRadiusLimit)
 			{
 				const double position = Rp * (exp(maxIndex * m_delta) - 1.);
 
@@ -140,13 +140,13 @@ namespace DFT {
 			{
 				const size_t midIndex = (maxIndex + minIndex) / 2;
 				val = GetBoundaryValueFar(static_cast<double>(midIndex), E);
-				if (val < 1E-180)
+				if (val < MaxRadiusLimit)
 					maxIndex = midIndex;
 				else
 					minIndex = midIndex;
 			}
 			
-			return Rp * (exp(minIndex * m_delta) - 1.);
+			return Rp * (exp(maxIndex * m_delta) - 1.);
 		}
 
 		inline double GetDerivativeStep(int posIndex, double h) const
@@ -170,6 +170,8 @@ namespace DFT {
 		double twodelta;
 		double delta2p4;
 		double Rp2delta2;
+
+		static constexpr double MaxRadiusLimit = 1E-200;
 	};
 
 
