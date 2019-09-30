@@ -62,7 +62,7 @@ Finished!
 ```
 
 I used 14 for 'multigrid levels' (that means 16385 nodes), 0.0005 for delta, mixing 0.5 and the max radius 25.
-The energy levels results match all given decimals from NIST. The total energy get five decimals right, the kinetic, coulomb and nuclear energies even six, the exchange correlation one seems to be the worse, with only four decimals (maybe there is room for improvement there?).
+The energy levels results match all given decimals from NIST. The total energy gets five decimals right, the kinetic, coulomb and nuclear energies even six, the exchange correlation one seems to be the worse, with only four decimals (maybe there is room for improvement there?).
 
 Here is the NIST data for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-argon
 
