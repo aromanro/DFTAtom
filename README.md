@@ -41,7 +41,7 @@ Finished!
 
 I used 17 for 'multigrid levels' (that means 131073 nodes) 0.0001 for delta, mixing 0.5 and the max radius 50.
 The results are not perfect, I guess with some other parameters they might be improved somewhat. The energy levels usually get all decimals given by NIST right, but occasionally the last one is wrong.
-The problem is for total energies, the total energy get three decimals right, the partial ones get three or four decimals right. 
+The problem is for total energies, the total energy gets three decimals right, the partial ones get three or four decimals right. 
 Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-radon
 
 For a lighter noble gas I get better results, for Argon for example:
