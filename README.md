@@ -16,23 +16,23 @@ As it's LDA and there is the assumption of spherical symmetry (for non occupied 
 Here is what I get in a bad scenario, Radon:
 
 ```
-Step: 27
-Energy 1s: -3204.75628853 Num nodes: 0
-Energy 2s: -546.577960761 Num nodes: 1
-Energy 2p: -527.533025217 Num nodes: 0
-Energy 3s: -133.369144942 Num nodes: 2
-Energy 3p: -124.172862712 Num nodes: 1
-Energy 3d: -106.9450068 Num nodes: 0
-Energy 4s: -31.2308038818 Num nodes: 3
-Energy 4p: -27.1089855361 Num nodes: 2
-Energy 4d: -19.449994751 Num nodes: 1
-Energy 4f: -8.95331853612 Num nodes: 0
-Energy 5s: -5.88968298422 Num nodes: 4
-Energy 5p: -4.40870286634 Num nodes: 3
-Energy 5d: -1.91132971988 Num nodes: 2
-Energy 6s: -0.626570786656 Num nodes: 5
-Energy 6p: -0.293180096137 Num nodes: 4
-Etotal = -21861.3469059 Ekin = 21854.6726735 Ecoul = 8632.01604286 Eenuc = -51966.1203681 Exc = -381.915254187
+Step: 30
+Energy 1s: -3204.75628814 Num nodes: 0
+Energy 2s: -546.577960661 Num nodes: 1
+Energy 2p: -527.533025107 Num nodes: 0
+Energy 3s: -133.369144873 Num nodes: 2
+Energy 3p: -124.172862647 Num nodes: 1
+Energy 3d: -106.945006737 Num nodes: 0
+Energy 4s: -31.2308038208 Num nodes: 3
+Energy 4p: -27.1089854743 Num nodes: 2
+Energy 4d: -19.4499946904 Num nodes: 1
+Energy 4f: -8.95331847594 Num nodes: 0
+Energy 5s: -5.88968292298 Num nodes: 4
+Energy 5p: -4.40870280587 Num nodes: 3
+Energy 5d: -1.91132966098 Num nodes: 2
+Energy 6s: -0.626570734867 Num nodes: 5
+Energy 6p: -0.293180043718 Num nodes: 4
+Etotal = -21861.3469029 Ekin = 21854.6726982 Ecoul = 8632.01604609 Eenuc = -51966.1203929 Exc = -381.915254274
 
 Finished!
 
