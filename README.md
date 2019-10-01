@@ -1,7 +1,7 @@
 # DFTAtom
 Density Functional Theory in real space, for atoms
 
-Description will follow soon on https://compphys.go.ro
+Description is on the Computational Physics Blog: https://compphys.go.ro/dft-for-an-atom/
 
 ### PROGRAM IN ACTION
 
