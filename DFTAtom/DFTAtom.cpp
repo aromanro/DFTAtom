@@ -268,6 +268,7 @@ namespace DFT {
 			}
 
 			const double Enuclear = -4 * M_PI * DFT::Integral::Boole(h, nuclear);
+
 			double Exc = 4 * M_PI * DFT::Integral::Boole(h, exccor);
 
 			const double eExcDif = 4 * M_PI * DFT::Integral::Boole(h, eexcDeriv);

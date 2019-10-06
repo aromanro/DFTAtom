@@ -9,6 +9,20 @@ namespace DFT {
 	{
 	public:
 
+		static double Trapezoid(const double delta, const std::vector<double>& values)
+		{
+			assert(values.size() >= 2);
+
+			double sum = 0.5 * (values.front() + values.back());
+		
+			const int szm1 = static_cast<int>(values.size()) - 1;
+
+			for (int i = 1; i < szm1; ++i)
+				sum += values[i];
+
+			return sum * delta;
+		}
+
 		static double SimpsonOneThird(const double delta, const std::vector<double>& values)
 		{
 			assert(values.size() >= 5);
