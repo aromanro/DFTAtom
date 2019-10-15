@@ -17,11 +17,11 @@ namespace DFT {
 		std::vector<double> SolvePoissonUniform(int Z, double maxRadius, std::vector<double>& density)
 		{
 			int coarsestLevel = static_cast<int>(SourceLevels.size() - 1);
-			auto &R = SourceLevels[0];
+			auto &Source = SourceLevels[0];
 
-			PoissonSolver::FillR(R, 0, maxRadius);
+			PoissonSolver::FillR(Source, 0, maxRadius);
 
-			const double delta = R[1] - R[0];
+			const double delta = Source[1] - Source[0];
 			const double delta2 = delta * delta;
 
 			// the delta^2 multiplication is for convenience
@@ -34,8 +34,8 @@ namespace DFT {
 			// it happens that for our current 'guess' of the solution (zero everywhere except for known boundary values)		
 			// we have the residual equal with the 'charge'
 
-			for (int i = 0; i < R.size(); ++i)
-				R[i] *= delta2 * 4 * M_PI * density[i];
+			for (int i = 0; i < Source.size(); ++i)
+				Source[i] *= delta2 * 4 * M_PI * density[i];
 
 
 			SetBoundaries(0, Z);
@@ -66,7 +66,7 @@ namespace DFT {
 
 
 			for (int i = 1; i < Source.size() - 1; ++i)
-				// step becomes 1 for the nonuniform grid, so multiplication with delta2 as above dissapears from here
+				// step becomes 1 for the nonuniform grid, so multiplication with delta2 as above disappears from here
 				Source[i] *= 4. * M_PI * Rp2delta2 * exp(i * twodelta) * density[i];
 
 
