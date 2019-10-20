@@ -175,7 +175,7 @@ namespace DFT {
 				const bool sgnBottom = delta > 0;
 
 				bool didNotConverge = true;
-				for (int i = 0; i < 1000; ++i)
+				for (int i = 0; i < 500; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
@@ -423,7 +423,7 @@ namespace DFT {
 				const bool sgnBottom = delta > 0;
 
 				bool didNotConverge = true;
-				for (int i = 0; i < 1000; ++i)
+				for (int i = 0; i < 500; ++i)
 				{
 					level.E = (TopEnergy + BottomEnergy) / 2;
 
