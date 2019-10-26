@@ -199,7 +199,7 @@ namespace DFT {
 				h2 = h * h;
 				h2p12 = h2 / 12.;
 
-				endPoint = std::min(endPoint, function.GetMaxRadius(E));
+				endPoint = std::min(endPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(endPoint / h);
 			}
 
