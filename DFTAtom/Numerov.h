@@ -54,6 +54,12 @@ namespace DFT {
 		{
 			return 200. / sqrt(2. * abs(E));
 		}
+
+		inline static double GetWavefunctionValue(size_t posIndex, double value)
+		{
+			return value;
+		}
+
 	protected:
 
 		const Potential& m_pot;
@@ -152,6 +158,11 @@ namespace DFT {
 		inline double GetDerivativeStep(int posIndex, double h) const
 		{
 			return Rp * exp(posIndex * m_delta) * (1. - exp(-m_delta));
+		}
+
+		inline double GetWavefunctionValue(size_t posIndex, double value) const
+		{
+			return exp(posIndex * m_delta * 0.5) * value;
 		}
 
 		inline double GetRp() const { return Rp; }
