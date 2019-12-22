@@ -42,7 +42,7 @@ Finished!
 I used 17 for 'multigrid levels' (that means 131073 nodes) 0.0001 for delta, mixing 0.5 and the max radius 50.
 The results are not perfect, I guess with some other parameters they might be improved somewhat. The energy levels usually get all decimals given by NIST right, but occasionally the last one is wrong.
 The problem is for total energies, the total energy gets three decimals right, the partial ones get three or four decimals right. 
-Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-radon
+Here are the NIST values for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations/atomic-reference-data-electronic-7-70
 
 For a lighter noble gas I get better results, for Argon for example:
 
@@ -64,7 +64,7 @@ Finished!
 I used 14 for 'multigrid levels' (that means 16385 nodes), 0.0005 for delta, mixing 0.5 and the max radius 25.
 The energy levels results match all given decimals from NIST. The total energy gets five decimals right, the kinetic, coulomb and nuclear energies even six, the exchange correlation one seems to be the worse, with only four decimals (maybe there is room for improvement there?).
 
-Here is the NIST data for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-argon
+Here is the NIST data for comparison: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations/atomic-reference-data-electronic-7-16
 
 The program is faster than I expected, especially because I went to multi-grid instead of Numerov (or Runge-Kutta) for Poisson, so I expected it to be slower than with the other approach.
 
