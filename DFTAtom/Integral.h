@@ -9,12 +9,12 @@ namespace DFT {
 	{
 	public:
 
-		static double Trapezoid(const double delta, const std::vector<double>& values)
+		template<typename T> static T Trapezoid(const double delta, const std::vector<T>& values)
 		{
 			assert(values.size() >= 2);
 
-			double sum = 0.5 * (values.front() + values.back());
-		
+			T sum = 0.5 * (values.front() + values.back());
+
 			const int szm1 = static_cast<int>(values.size()) - 1;
 
 			for (int i = 1; i < szm1; ++i)
@@ -23,15 +23,15 @@ namespace DFT {
 			return sum * delta;
 		}
 
-		static double SimpsonOneThird(const double delta, const std::vector<double>& values)
+		template<typename T> static T SimpsonOneThird(const double delta, const std::vector<T>& values)
 		{
 			assert(values.size() >= 5);
 			assert(values.size() % 2);
 
-			double sum = values.front() + values.back();
+			T sum = values.front() + values.back();
 
-			double sum4 = 0;
-			double sum2 = 0;
+			T sum4 = 0;
+			T sum2 = 0;
 
 			const int szm1 = static_cast<int>(values.size()) - 1;
 
@@ -47,19 +47,19 @@ namespace DFT {
 			return sum * delta / 3.;
 		}
 
-		static double Boole(const double delta, const std::vector<double>& values)
+		template<typename T> static T Boole(const double delta, const std::vector<T>& values)
 		{
 			assert(values.size() > 4);
 			assert(values.size() % 4 == 1);
 
-			double sum = 7. * (values.front() + values.back());
+			T sum = 7. * (values.front() + values.back());
 
-			double sum32 = 0;
-			double sum12 = 0;
-			double sum14 = 0;
+			T sum32 = 0;
+			T sum12 = 0;
+			T sum14 = 0;
 
 			const int szm = static_cast<int>(values.size() - 1);
-			
+
 			for (int i = 1; i < szm; ++i)
 			{
 				sum32 += values[i++];
@@ -71,7 +71,7 @@ namespace DFT {
 				}
 			}
 
-			sum += 32. * sum32 + 12. * sum12 + 14 * sum14;
+			sum += 32. * sum32 + 12. * sum12 + 14. * sum14;
 
 			return sum * delta * 2. / 45.;
 		}
