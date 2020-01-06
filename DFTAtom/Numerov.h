@@ -60,6 +60,11 @@ namespace DFT {
 			return value;
 		}
 
+		inline static bool IsUniform()
+		{
+			return true;
+		}
+
 	protected:
 
 		const Potential& m_pot;
@@ -167,6 +172,12 @@ namespace DFT {
 
 		inline double GetRp() const { return Rp; }
 		inline double GetDelta() const { return m_delta; }
+
+		inline static bool IsUniform()
+		{
+			return false;
+		}
+
 	protected:
 		inline double GetPosition(size_t posIndex) const
 		{
@@ -195,16 +206,7 @@ namespace DFT {
 
 		inline void SolveSchrodingerCountNodesFromNucleus(double endPoint, unsigned int l, double E, long int steps, long int nodesLimit, int& nodesCount)
 		{
-			if (endPoint == steps)
-			{
-				h = 1;
-				h2 = 1;
-				h2p12 = 1. / 12.;
-
-				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E, steps, 1));
-				steps = static_cast<long int>(endPoint);
-			}
-			else
+			if (NumerovFunction::IsUniform())
 			{
 				h = endPoint / steps;
 				h2 = h * h;
@@ -213,7 +215,15 @@ namespace DFT {
 				endPoint = std::min(endPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(endPoint / h);
 			}
+			else
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
 
+				endPoint = std::min(endPoint, function.GetMaxRadiusIndex(E, steps, 1));
+				steps = static_cast<long int>(endPoint);
+			}
 
 			double position = 0;
 			double prevSol = 0;
@@ -268,16 +278,7 @@ namespace DFT {
 
 		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, long int steps, long int nodesLimit, int& nodesCount)
 		{
-			if (static_cast<long int>(startPoint) == steps)
-			{
-				h = 1;
-				h2 = 1;
-				h2p12 = 1. / 12.;
-
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
-				steps = static_cast<long int>(startPoint);
-			}
-			else
+			if (NumerovFunction::IsUniform())
 			{
 				h = startPoint / steps;
 				h2 = h * h;
@@ -286,7 +287,15 @@ namespace DFT {
 				startPoint = std::min(startPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(startPoint / h);
 			}
+			else
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
 
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
+				steps = static_cast<long int>(startPoint);
+			}
 
 			double position = startPoint;
 			double solution = function.GetBoundaryValueFar(position, E);
@@ -349,16 +358,7 @@ namespace DFT {
 
 		inline double SolveSchrodingerSolutionInZero(double startPoint, unsigned int l, double E, long int steps)
 		{
-			if (static_cast<long int>(startPoint) == steps)
-			{
-				h = 1;
-				h2 = 1;
-				h2p12 = 1. / 12.;
-
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
-				steps = static_cast<long int>(startPoint);
-			}
-			else
+			if (NumerovFunction::IsUniform())
 			{
 				h = startPoint / steps;
 				h2 = h * h;
@@ -366,6 +366,15 @@ namespace DFT {
 
 				startPoint = std::min(startPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(startPoint / h);
+			}
+			else
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
+
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
+				steps = static_cast<long int>(startPoint);
 			}
 
 			double position = startPoint;
@@ -404,16 +413,7 @@ namespace DFT {
 			const long int highLimit = steps + 1;
 			std::vector<double> Psi(highLimit);
 
-			if (static_cast<long int>(startPoint) == steps)
-			{
-				h = 1;
-				h2 = 1;
-				h2p12 = 1. / 12.;
-
-				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
-				steps = static_cast<long int>(startPoint);
-			}
-			else
+			if (NumerovFunction::IsUniform())
 			{
 				h = startPoint / steps;
 				h2 = h * h;
@@ -422,6 +422,16 @@ namespace DFT {
 				startPoint = std::min(startPoint, function.GetMaxRadius(E, steps));
 				steps = static_cast<long int>(startPoint / h);
 			}
+			else
+			{
+				h = 1;
+				h2 = 1;
+				h2p12 = 1. / 12.;
+
+				startPoint = std::min(startPoint, function.GetMaxRadiusIndex(E, steps, 1));
+				steps = static_cast<long int>(startPoint);
+			}
+
 			for (long int i = steps + 1; i < highLimit; ++i)
 				Psi[i] = 0;
 
