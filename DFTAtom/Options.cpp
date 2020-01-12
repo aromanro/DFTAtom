@@ -35,6 +35,7 @@ void Options::Close()
 
 void Options::Load()
 {
+	Open();
 	wxConfigBase *conf = wxConfigBase::Get(false);
 	if (conf)
 	{		
@@ -45,10 +46,12 @@ void Options::Load()
 		deltaGrid = conf->ReadDouble("/deltaGrid", 0.001);
 		alpha = conf->ReadDouble("/alpha", 0.5);
 	}
+	Close();
 }
 
 void Options::Save()
 {
+	Open();
 	wxConfigBase *conf=wxConfigBase::Get(false);
 	if (conf)
 	{		
@@ -62,4 +65,5 @@ void Options::Save()
 
 	if (m_fileconfig)
 		m_fileconfig->Flush();
+	Close();
 }

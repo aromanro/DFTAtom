@@ -43,9 +43,6 @@ public:
 	void Load();
 	void Save();
 
-	void Open();
-	void Close();
-
 	int Z;
 	int MultigridLevels;
 	double MaxR;
@@ -53,6 +50,9 @@ public:
 	double alpha;
 
 protected:
+	void Open();
+	void Close();
+
 	wxFileConfig *m_fileconfig;
 };
 
