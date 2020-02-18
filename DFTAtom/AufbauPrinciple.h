@@ -95,8 +95,6 @@ namespace DFT {
 					}
 				}
 
-			std::cout << std::endl;
-
 			return levels;
 		}
 
