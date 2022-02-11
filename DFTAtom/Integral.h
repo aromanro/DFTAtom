@@ -8,7 +8,6 @@ namespace DFT {
 	class Integral
 	{
 	public:
-
 		template<typename T> static T Trapezoid(const double delta, const std::vector<T>& values)
 		{
 			assert(values.size() >= 2);
@@ -75,7 +74,6 @@ namespace DFT {
 
 			return sum * delta * 2. / 45.;
 		}
-
 	};
 
 }

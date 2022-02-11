@@ -33,7 +33,7 @@ class MyStream : public std::ostream, std::streambuf
 public:
 	MyStream(std::string& bufStr, std::mutex& strMutex) : std::ostream(this), m_bufStr(bufStr), m_strMutex(strMutex) {}
 
-	virtual int overflow(int c) override
+	int overflow(int c) override
 	{
 		log(c);
 

@@ -66,7 +66,6 @@ namespace DFT {
 		}
 
 	protected:
-
 		const Potential& m_pot;
 	};
 
@@ -273,7 +272,6 @@ namespace DFT {
 				else if (firstClassicalReturnPoint && effPotential > E)
 					return;
 			}
-
 		}
 
 		inline void SolveSchrodingerCountNodes(double startPoint, unsigned int l, double E, long int steps, long int nodesLimit, int& nodesCount)
@@ -473,7 +471,6 @@ namespace DFT {
 					matchPoint = i;
 					break;
 				}
-
 			}
 
 			position = 0;

@@ -31,7 +31,7 @@ public:
 protected:
 	void CreateControls();
 
-	virtual bool TransferDataFromWindow() override;
+	bool TransferDataFromWindow() override;
 
 	void OnClose(wxCloseEvent& event);
 

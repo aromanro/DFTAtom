@@ -23,7 +23,6 @@ namespace DFT {
 	class AufbauPrinciple
 	{
 	public:
-
 		static std::vector<Subshell> GetSubshells(int Z)
 		{
 			std::vector<Subshell> levels;
@@ -77,9 +76,7 @@ namespace DFT {
 							}
 						}
 						else if (103 == Z && 5 == N && 2 == L) // Lr, 6d loses the electron, goes into 7p
-						{
 							nrElectrons = 0;
-						}
 
 						if (nrElectrons > 0)
 						{
@@ -97,11 +94,5 @@ namespace DFT {
 
 			return levels;
 		}
-
 	};
-
 }
-
-
-
-
