@@ -215,42 +215,7 @@ namespace DFT {
 
 			// locate the interval to search into by using the number of nodes of the wavefunction
 
-			double toe = TopEnergy;
-			double boe = BottomEnergy;
-			double deltaEnergy = toe - boe;
-			while (deltaEnergy > energyErr)
-			{
-				const double E = (toe + boe) / 2;
-
-				int NumNodesCounted;
-				numerov.SolveSchrodingerCountNodes(MaxR, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-				if (NumNodesCounted > NumNodes)
-					toe = E;
-				else
-					boe = E;
-
-				deltaEnergy = toe - boe;
-			}
-			TopEnergy = toe;
-
-			boe = BottomEnergy;
-			deltaEnergy = toe - boe;
-			while (deltaEnergy > energyErr)
-			{
-				const double E = (toe + boe) / 2;
-
-				int NumNodesCounted;
-				numerov.SolveSchrodingerCountNodes(MaxR, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-				if (NumNodesCounted < NumNodes)
-					boe = E;
-				else
-					toe = E;
-
-				deltaEnergy = toe - boe;
-			}
-			BottomEnergy = toe;
+			LocateInterval(numerov, TopEnergy, BottomEnergy, MaxR, level.m_L, NumSteps, NumNodes, energyErr);
 
 			// ***************************************************************************************************************************
 
@@ -304,6 +269,47 @@ namespace DFT {
 
 			Eelectronic += level.m_nrElectrons * level.E;
 		}
+	}
+
+
+	void DFTAtom::LocateInterval(Numerov<NumerovFunctionRegularGrid>& numerov, double& TopEnergy, double& BottomEnergy, double MaxR, int L, int NumSteps, int NumNodes, double energyErr)
+	{
+		double toe = TopEnergy;
+		double boe = BottomEnergy;
+		double deltaEnergy = toe - boe;
+		while (deltaEnergy > energyErr)
+		{
+			const double E = (toe + boe) / 2;
+
+			int NumNodesCounted;
+			numerov.SolveSchrodingerCountNodes(MaxR, L, E, NumSteps, NumNodes, NumNodesCounted);
+
+			if (NumNodesCounted > NumNodes)
+				toe = E;
+			else
+				boe = E;
+
+			deltaEnergy = toe - boe;
+		}
+		TopEnergy = toe;
+
+		boe = BottomEnergy;
+		deltaEnergy = toe - boe;
+		while (deltaEnergy > energyErr)
+		{
+			const double E = (toe + boe) / 2;
+
+			int NumNodesCounted;
+			numerov.SolveSchrodingerCountNodes(MaxR, L, E, NumSteps, NumNodes, NumNodesCounted);
+
+			if (NumNodesCounted < NumNodes)
+				boe = E;
+			else
+				toe = E;
+
+			deltaEnergy = toe - boe;
+		}
+		BottomEnergy = toe;
 	}
 
 
@@ -467,43 +473,7 @@ namespace DFT {
 			double TopEnergy = 50;
 
 			// locate the interval to search into by using the number of nodes of the wavefunction
-
-			double toe = TopEnergy;
-			double boe = BottomEnergy;
-			double deltaEnergy = toe - boe;
-			while (deltaEnergy > energyErr)
-			{
-				const double E = (toe + boe) / 2;
-
-				int NumNodesCounted;
-				numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-				if (NumNodesCounted > NumNodes)
-					toe = E;
-				else
-					boe = E;
-
-				deltaEnergy = toe - boe;
-			}
-			TopEnergy = toe;
-
-			boe = BottomEnergy;
-			deltaEnergy = toe - boe;
-			while (deltaEnergy > energyErr)
-			{
-				const double E = (toe + boe) / 2;
-
-				int NumNodesCounted;
-				numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-				if (NumNodesCounted < NumNodes)
-					boe = E;
-				else
-					toe = E;
-
-				deltaEnergy = toe - boe;
-			}
-			BottomEnergy = toe;
+			LocateInterval(numerov, TopEnergy, BottomEnergy, level.m_L, NumSteps, NumNodes, energyErr);
 
 			// ***************************************************************************************************************************
 
@@ -559,4 +529,44 @@ namespace DFT {
 		}
 	}
 
+
+	void DFTAtom::LocateInterval(Numerov<NumerovFunctionNonUniformGrid>& numerov, double& TopEnergy, double& BottomEnergy, int L, int NumSteps, int NumNodes, double energyErr)
+	{
+		double toe = TopEnergy;
+		double boe = BottomEnergy;
+		double deltaEnergy = toe - boe;
+		while (deltaEnergy > energyErr)
+		{
+			const double E = (toe + boe) / 2;
+
+			int NumNodesCounted;
+			numerov.SolveSchrodingerCountNodes(NumSteps, L, E, NumSteps, NumNodes, NumNodesCounted);
+
+			if (NumNodesCounted > NumNodes)
+				toe = E;
+			else
+				boe = E;
+
+			deltaEnergy = toe - boe;
+		}
+		TopEnergy = toe;
+
+		boe = BottomEnergy;
+		deltaEnergy = toe - boe;
+		while (deltaEnergy > energyErr)
+		{
+			const double E = (toe + boe) / 2;
+
+			int NumNodesCounted;
+			numerov.SolveSchrodingerCountNodes(NumSteps, L, E, NumSteps, NumNodes, NumNodesCounted);
+
+			if (NumNodesCounted < NumNodes)
+				boe = E;
+			else
+				toe = E;
+
+			deltaEnergy = toe - boe;
+		}
+		BottomEnergy = toe;
+	}
 }
