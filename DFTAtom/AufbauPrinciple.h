@@ -39,44 +39,13 @@ namespace DFT {
 					{
 						int nrElectrons = 2 * (2 * L + 1);
 
-						// exceptions transition metals
-						if (TransitionMetalsException(Z, L)) // the electron is obtained from 's'
-						{
-							if (Z <= 29) // 3d gets 1 electron
-							{
-								if (3 == N) // from 4s
-									--nrElectrons;
-							}
-							else if (Z <= 47) // 4d gets 1 electron
-							{
-								if (4 == N) // from 5s
-									--nrElectrons;
-							}
-							else // 5d gets 1 electron
-								if (5 == N) // from 6s
-									--nrElectrons;
-						}
-						else if (PdException(Z, N, L)) // Pd is an exception to the above, 4d gets 2 electrons
-							nrElectrons -= 2;
+						AdjustForLanthanidesAndActinides(nrElectrons, Z, N, L);
 
 						if (Z - electronCount < nrElectrons)
 							nrElectrons = Z - electronCount;
 
 						// exceptions lanthanides and actinides
-						if (3 == L) // f
-						{
-							if (LaCeGaException(Z, N)) // La, Ce and Ga, 4f loses one electron, it will go on 5d
-								--nrElectrons;
-							else if (4 == N)
-							{
-								if (89 == Z || 90 == Z) // Ac, 5f loses one electron, it will go in 6d, Th, 5f loses two electrons, they will go in 6d
-									nrElectrons = 0;
-								else if (PaUNpCdException(Z)) // Pa, 5f loses one electron (2 still remain, so not set to 0), it goes on 6d, U, similarly, loses 1, 3 remain, Np and Cm as for Uranium
-									--nrElectrons;
-							}
-						}
-						else if (LrException(Z, N, L)) // Lr, 6d loses the electron, goes into 7p
-							nrElectrons = 0;
+						AdjustForLanthanidesAndActinides(nrElectrons, Z, N, L);
 
 						if (nrElectrons > 0)
 						{
@@ -96,6 +65,47 @@ namespace DFT {
 		}
 
 	private:
+		static void AdjustForTransitionMetals(int& nrElectrons, int Z, int N, int L)
+		{
+			// exceptions transition metals
+			if (TransitionMetalsException(Z, L)) // the electron is obtained from 's'
+			{
+				if (Z <= 29) // 3d gets 1 electron
+				{
+					if (3 == N) // from 4s
+						--nrElectrons;
+				}
+				else if (Z <= 47) // 4d gets 1 electron
+				{
+					if (4 == N) // from 5s
+						--nrElectrons;
+				}
+				else // 5d gets 1 electron
+					if (5 == N) // from 6s
+						--nrElectrons;
+			}
+			else if (PdException(Z, N, L)) // Pd is an exception to the above, 4d gets 2 electrons
+				nrElectrons -= 2;
+		}
+
+		static void AdjustForLanthanidesAndActinides(int& nrElectrons, int Z, int N, int L)
+		{
+			if (3 == L) // f
+			{
+				if (LaCeGaException(Z, N)) // La, Ce and Ga, 4f loses one electron, it will go on 5d
+					--nrElectrons;
+				else if (4 == N)
+				{
+					if (89 == Z || 90 == Z) // Ac, 5f loses one electron, it will go in 6d, Th, 5f loses two electrons, they will go in 6d
+						nrElectrons = 0;
+					else if (PaUNpCdException(Z)) // Pa, 5f loses one electron (2 still remain, so not set to 0), it goes on 6d, U, similarly, loses 1, 3 remain, Np and Cm as for Uranium
+						--nrElectrons;
+				}
+			}
+			else if (LrException(Z, N, L)) // Lr, 6d loses the electron, goes into 7p
+				nrElectrons = 0;
+		}
+
 		static bool TransitionMetalsException(int Z, int L)
 		{
 			return (24 == Z || 29 == Z || 41 == Z || 42 == Z || 44 == Z || 45 == Z || 47 == Z || 78 == Z || 79 == Z) && 0 == L;
