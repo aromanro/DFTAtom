@@ -368,104 +368,7 @@ namespace DFT {
 			bool reallyConverged = true;
 			double BottomEnergy = -double(Z) * Z - 1.;
 
-			for (auto& level : levels)
-			{
-				const int NumNodes = level.m_N - level.m_L;
-				
-				double TopEnergy = 50;
-				
-				// locate the interval to search into by using the number of nodes of the wavefunction
-
-				double toe = TopEnergy;
-				double boe = BottomEnergy;
-				double deltaEnergy = toe - boe;
-				while (deltaEnergy > energyErr)
-				{
-					const double E = (toe + boe) / 2;
-
-					int NumNodesCounted;
-					numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-					if (NumNodesCounted > NumNodes)
-						toe = E;
-					else
-						boe = E;
-
-					deltaEnergy = toe - boe;
-				}
-				TopEnergy = toe;
-
-				boe = BottomEnergy;
-				deltaEnergy = toe - boe;
-				while (deltaEnergy > energyErr)
-				{
-					const double E = (toe + boe) / 2;
-
-					int NumNodesCounted;
-					numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-					if (NumNodesCounted < NumNodes)
-						boe = E;
-					else
-						toe = E;
-
-					deltaEnergy = toe - boe;
-				}
-				BottomEnergy = toe;
-
-				// ***************************************************************************************************************************
-
-				// locate the solution using the bisection method on the interval found above
-
-				// it's the shooting method, it's supposed to shoot for 'zero' in the origin
-				// sometimes it gets far away (whence the 1E15 comparison below)
-				// the errors are too big, the line with the comment 'now really solve it' shoots from both 'infinity' and zero, matching the solutions in between				
-				// there is another method that could be used, to shoot from both directions and do the match trying to have a fit for the derivative, for now I won't use it
-
-				double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
-				const bool sgnBottom = delta > 0;
-
-				bool didNotConverge = true;
-				for (int i = 0; i < 500; ++i)
-				{
-					level.E = (TopEnergy + BottomEnergy) / 2;
-
-					delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
-					if ((delta > 0) == sgnBottom)
-						BottomEnergy = level.E;
-					else
-						TopEnergy = level.E;
-					
-					const double absdelta = abs(delta);
-					if (TopEnergy - BottomEnergy < energyErr && !isnan(absdelta) && absdelta < 1E15)
-					{
-						didNotConverge = false;
-						break;
-					}						
-				}
-				level.E = BottomEnergy;
-
-				// ***************************************************************************************************************************
-											
-				if (didNotConverge) 
-					reallyConverged = false;
-
-				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
-
-				// now really solve it	
-				long int matchPoint;
-				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
-				NormalizeNonUniform(result, Rp, deltaGrid);
-
-				std::cout << "Energy " << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
-
-				for (int i = 0; i < result.size() - 1; ++i)
-					newDensity[i] += level.m_nrElectrons * result[i] * result[i];
-
-
-				Eelectronic += level.m_nrElectrons * level.E;
-			}
-
+			LoopOverLevels(numerov, levels, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged, energyErr);
 
 			for (int i = 1; i < density.size(); ++i)
 			{
@@ -553,6 +456,107 @@ namespace DFT {
 
 		for (const auto& level : levels)
 			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
+	}
+
+	void DFTAtom::LoopOverLevels(Numerov<NumerovFunctionNonUniformGrid>& numerov, std::vector<Subshell>& levels, std::vector<double>& newDensity, double& Eelectronic, double& BottomEnergy, int NumSteps, double Rp, double deltaGrid, bool& reallyConverged, double energyErr)
+	{
+		for (auto& level : levels)
+		{
+			const int NumNodes = level.m_N - level.m_L;
+
+			double TopEnergy = 50;
+
+			// locate the interval to search into by using the number of nodes of the wavefunction
+
+			double toe = TopEnergy;
+			double boe = BottomEnergy;
+			double deltaEnergy = toe - boe;
+			while (deltaEnergy > energyErr)
+			{
+				const double E = (toe + boe) / 2;
+
+				int NumNodesCounted;
+				numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
+
+				if (NumNodesCounted > NumNodes)
+					toe = E;
+				else
+					boe = E;
+
+				deltaEnergy = toe - boe;
+			}
+			TopEnergy = toe;
+
+			boe = BottomEnergy;
+			deltaEnergy = toe - boe;
+			while (deltaEnergy > energyErr)
+			{
+				const double E = (toe + boe) / 2;
+
+				int NumNodesCounted;
+				numerov.SolveSchrodingerCountNodes(NumSteps, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
+
+				if (NumNodesCounted < NumNodes)
+					boe = E;
+				else
+					toe = E;
+
+				deltaEnergy = toe - boe;
+			}
+			BottomEnergy = toe;
+
+			// ***************************************************************************************************************************
+
+			// locate the solution using the bisection method on the interval found above
+
+			// it's the shooting method, it's supposed to shoot for 'zero' in the origin
+			// sometimes it gets far away (whence the 1E15 comparison below)
+			// the errors are too big, the line with the comment 'now really solve it' shoots from both 'infinity' and zero, matching the solutions in between				
+			// there is another method that could be used, to shoot from both directions and do the match trying to have a fit for the derivative, for now I won't use it
+
+			double delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, BottomEnergy, NumSteps);
+			const bool sgnBottom = delta > 0;
+
+			bool didNotConverge = true;
+			for (int i = 0; i < 500; ++i)
+			{
+				level.E = (TopEnergy + BottomEnergy) / 2;
+
+				delta = numerov.SolveSchrodingerSolutionInZero(NumSteps, level.m_L, level.E, NumSteps);
+				if ((delta > 0) == sgnBottom)
+					BottomEnergy = level.E;
+				else
+					TopEnergy = level.E;
+
+				const double absdelta = abs(delta);
+				if (TopEnergy - BottomEnergy < energyErr && !isnan(absdelta) && absdelta < 1E15)
+				{
+					didNotConverge = false;
+					break;
+				}
+			}
+			level.E = BottomEnergy;
+
+			// ***************************************************************************************************************************
+
+			if (didNotConverge)
+				reallyConverged = false;
+
+			BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
+
+			// now really solve it	
+			long int matchPoint;
+			std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(NumSteps, level.m_L, level.E, NumSteps, matchPoint);
+			NormalizeNonUniform(result, Rp, deltaGrid);
+
+			std::cout << "Energy " << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
+
+			for (int i = 0; i < result.size() - 1; ++i)
+				newDensity[i] += level.m_nrElectrons * result[i] * result[i];
+
+
+			Eelectronic += level.m_nrElectrons * level.E;
+		}
 	}
 
 }
