@@ -1,6 +1,8 @@
 # DFTAtom
 Density Functional Theory in real space, for atoms
 
+[![CodeFactor](https://www.codefactor.io/repository/github/aromanro/dftatom/badge/master)](https://www.codefactor.io/repository/github/aromanro/dftatom/overview/master)
+
 Description is on the Computational Physics Blog: https://compphys.go.ro/dft-for-an-atom/
 
 ### PROGRAM IN ACTION
