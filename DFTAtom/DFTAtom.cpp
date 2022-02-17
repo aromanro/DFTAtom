@@ -7,13 +7,13 @@
 #include "PoissonSolver.h"
 
 #include "Integral.h"
-#include "AufbauPrinciple.h"
-#include "Numerov.h"
 #include "VWNExcCor.h"
 
 #include "DFTAtom.h"
 
 namespace DFT {
+
+	const char DFTAtom::orb[] = { 's', 'p', 'd', 'f' };
 
 
 	void DFTAtom::NormalizeUniform(std::vector<double>& Psi, double h)
@@ -57,12 +57,11 @@ namespace DFT {
 
 	void DFTAtom::CalculateUniform(int Z, int MultigridLevels, double alpha, double MaxR)
 	{
-		static const char orb[] = { 's', 'p', 'd', 'f' };
 		static const double energyErr = 1E-12;
 
 		const double oneMinusAlpha = 1. - alpha;
 
-		const int NumGridNodes = DFT::PoissonSolver::GetNumberOfNodes(MultigridLevels);
+		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
 
 		const int NumSteps = NumGridNodes - 1;
 
@@ -70,11 +69,11 @@ namespace DFT {
 
 		std::vector<double> density(NumGridNodes);
 
-		DFT::Potential potential;
+		Potential potential;
 		potential.m_potentialValues.resize(NumGridNodes);
 
 
-		std::vector<DFT::Subshell> levels = DFT::AufbauPrinciple::GetSubshells(Z);
+		std::vector<Subshell> levels = AufbauPrinciple::GetSubshells(Z);
 		std::sort(levels.begin(), levels.end());
 
 		double Eold = 0;
@@ -88,10 +87,10 @@ namespace DFT {
 			density[i] = constDens;
 
 
-		DFT::PoissonSolver poissonSolver(MultigridLevels);
+		PoissonSolver poissonSolver(MultigridLevels);
 
 		std::vector<double> UHartree = poissonSolver.SolvePoissonUniform(Z, MaxR, density);
-		std::vector<double> Vexc = DFT::VWNExchCor::Vexc(density);
+		std::vector<double> Vexc = VWNExchCor::Vexc(density);
 
 
 		potential.m_potentialValues[0] = 0;
@@ -112,109 +111,12 @@ namespace DFT {
 
 			std::vector<double> newDensity(density.size(), 0);
 
-			DFT::Numerov<DFT::NumerovFunctionRegularGrid> numerov(potential, 0, MaxR, NumGridNodes);
+			Numerov<NumerovFunctionRegularGrid> numerov(potential, 0, MaxR, NumGridNodes);
 
 			bool reallyConverged = true;
 			double BottomEnergy = -double(Z) * Z - 1.;
 
-			for (auto& level : levels)
-			{
-				const int NumNodes = level.m_N - level.m_L;
-
-				double TopEnergy = 50;
-
-				// locate the interval to search into by using the number of nodes of the wavefunction
-
-				double toe = TopEnergy;
-				double boe = BottomEnergy;
-				double deltaEnergy = toe - boe;
-				while (deltaEnergy > energyErr)
-				{
-					const double E = (toe + boe) / 2;
-
-					int NumNodesCounted;
-					numerov.SolveSchrodingerCountNodes(MaxR, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-					if (NumNodesCounted > NumNodes)
-						toe = E;
-					else
-						boe = E;
-
-					deltaEnergy = toe - boe;
-				}
-				TopEnergy = toe;
-
-				boe = BottomEnergy;
-				deltaEnergy = toe - boe;
-				while (deltaEnergy > energyErr)
-				{
-					const double E = (toe + boe) / 2;
-
-					int NumNodesCounted;
-					numerov.SolveSchrodingerCountNodes(MaxR, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
-
-					if (NumNodesCounted < NumNodes)
-						boe = E;
-					else
-						toe = E;
-
-					deltaEnergy = toe - boe;
-				}
-				BottomEnergy = toe;
-
-				// ***************************************************************************************************************************
-
-				// locate the solution using the bisection method on the interval found above
-
-				// it's the shooting method, it's supposed to shoot for 'zero' in the origin
-				// sometimes it gets far away (whence the 1E15 comparison below)
-				// the errors are too big, the line with the comment 'now really solve it' shoots from both 'infinity' and zero, matching the solutions in between				
-				// there is another method that could be used, to shoot from both directions and do the match trying to have a fit for the derivative, for now I won't use it
-
-				double delta = numerov.SolveSchrodingerSolutionInZero(MaxR, level.m_L, BottomEnergy, NumSteps);
-				const bool sgnBottom = delta > 0;
-
-				bool didNotConverge = true;
-				for (int i = 0; i < 500; ++i)
-				{
-					level.E = (TopEnergy + BottomEnergy) / 2;
-
-					delta = numerov.SolveSchrodingerSolutionInZero(MaxR, level.m_L, level.E, NumSteps);
-					if ((delta > 0) == sgnBottom)
-						BottomEnergy = level.E;
-					else
-						TopEnergy = level.E;
-
-					const double absdelta = abs(delta);
-					if (TopEnergy - BottomEnergy < energyErr && !isnan(absdelta) && absdelta < 1E15)
-					{
-						didNotConverge = false;
-						break;
-					}
-				}
-				level.E = BottomEnergy;
-
-				// ***************************************************************************************************************************
-
-				if (didNotConverge)
-					reallyConverged = false;
-
-				BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
-
-				// now really solve it	
-				long int matchPoint;
-				std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(MaxR, level.m_L, level.E, NumSteps, matchPoint);
-				NormalizeUniform(result, h);
-
-				std::cout << "Energy " << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
-
-				for (int i = 0; i < result.size() - 1; ++i)
-					newDensity[i] += level.m_nrElectrons * result[i] * result[i];
-
-
-				Eelectronic += level.m_nrElectrons * level.E;
-			}
-
+			LoopOverLevels(numerov, levels, newDensity, Eelectronic, BottomEnergy, NumSteps, MaxR, h, reallyConverged, energyErr);
 
 			for (int i = 1; i < density.size(); ++i)
 			{
@@ -230,7 +132,7 @@ namespace DFT {
 
 
 			UHartree = poissonSolver.SolvePoissonUniform(Z, MaxR, density);
-			Vexc = DFT::VWNExchCor::Vexc(density);
+			Vexc = VWNExchCor::Vexc(density);
 
 			// Nuclear energy:
 			std::vector<double> nuclear(NumGridNodes);
@@ -238,7 +140,7 @@ namespace DFT {
 			// Exchange-correlation energy:
 			std::vector<double> exccor(NumGridNodes);
 
-			std::vector<double> eexcDeriv = DFT::VWNExchCor::eexcDif(density);
+			std::vector<double> eexcDeriv = VWNExchCor::eexcDif(density);
 
 			// Hartree energy:
 			std::vector<double> hartree(NumGridNodes);
@@ -303,14 +205,115 @@ namespace DFT {
 	}
 
 
+	void DFTAtom::LoopOverLevels(Numerov<NumerovFunctionRegularGrid> &numerov, std::vector<Subshell>& levels, std::vector<double>& newDensity, double& Eelectronic, double& BottomEnergy, int NumSteps, double MaxR, double h, bool& reallyConverged, double energyErr)
+	{
+		for (auto& level : levels)
+		{
+			const int NumNodes = level.m_N - level.m_L;
+
+			double TopEnergy = 50;
+
+			// locate the interval to search into by using the number of nodes of the wavefunction
+
+			double toe = TopEnergy;
+			double boe = BottomEnergy;
+			double deltaEnergy = toe - boe;
+			while (deltaEnergy > energyErr)
+			{
+				const double E = (toe + boe) / 2;
+
+				int NumNodesCounted;
+				numerov.SolveSchrodingerCountNodes(MaxR, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
+
+				if (NumNodesCounted > NumNodes)
+					toe = E;
+				else
+					boe = E;
+
+				deltaEnergy = toe - boe;
+			}
+			TopEnergy = toe;
+
+			boe = BottomEnergy;
+			deltaEnergy = toe - boe;
+			while (deltaEnergy > energyErr)
+			{
+				const double E = (toe + boe) / 2;
+
+				int NumNodesCounted;
+				numerov.SolveSchrodingerCountNodes(MaxR, level.m_L, E, NumSteps, NumNodes, NumNodesCounted);
+
+				if (NumNodesCounted < NumNodes)
+					boe = E;
+				else
+					toe = E;
+
+				deltaEnergy = toe - boe;
+			}
+			BottomEnergy = toe;
+
+			// ***************************************************************************************************************************
+
+			// locate the solution using the bisection method on the interval found above
+
+			// it's the shooting method, it's supposed to shoot for 'zero' in the origin
+			// sometimes it gets far away (whence the 1E15 comparison below)
+			// the errors are too big, the line with the comment 'now really solve it' shoots from both 'infinity' and zero, matching the solutions in between				
+			// there is another method that could be used, to shoot from both directions and do the match trying to have a fit for the derivative, for now I won't use it
+
+			double delta = numerov.SolveSchrodingerSolutionInZero(MaxR, level.m_L, BottomEnergy, NumSteps);
+			const bool sgnBottom = delta > 0;
+
+			bool didNotConverge = true;
+			for (int i = 0; i < 500; ++i)
+			{
+				level.E = (TopEnergy + BottomEnergy) / 2;
+
+				delta = numerov.SolveSchrodingerSolutionInZero(MaxR, level.m_L, level.E, NumSteps);
+				if ((delta > 0) == sgnBottom)
+					BottomEnergy = level.E;
+				else
+					TopEnergy = level.E;
+
+				const double absdelta = abs(delta);
+				if (TopEnergy - BottomEnergy < energyErr && !isnan(absdelta) && absdelta < 1E15)
+				{
+					didNotConverge = false;
+					break;
+				}
+			}
+			level.E = BottomEnergy;
+
+			// ***************************************************************************************************************************
+
+			if (didNotConverge)
+				reallyConverged = false;
+
+			BottomEnergy = level.E - 3; // can happen sometimes to have it lower (see for example W, 4f is higher than 5s) 
+
+			// now really solve it	
+			long int matchPoint;
+			std::vector<double> result = numerov.SolveSchrodingerMatchSolutionCompletely(MaxR, level.m_L, level.E, NumSteps, matchPoint);
+			NormalizeUniform(result, h);
+
+			std::cout << "Energy " << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
+
+			for (int i = 0; i < result.size() - 1; ++i)
+				newDensity[i] += level.m_nrElectrons * result[i] * result[i];
+
+
+			Eelectronic += level.m_nrElectrons * level.E;
+		}
+	}
+
+
 	void DFTAtom::CalculateNonUniform(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
-		static const char orb[] = { 's', 'p', 'd', 'f' };
 		static const double energyErr = 1E-12; 
 
 		const double oneMinusAlpha = 1. - alpha;
 		
-		const int NumGridNodes = DFT::PoissonSolver::GetNumberOfNodes(MultigridLevels);
+		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
 
 		const int NumSteps = NumGridNodes - 1;
 		const double Rp = MaxR / (exp(NumSteps * deltaGrid) - 1.);
@@ -318,11 +321,11 @@ namespace DFT {
 
 		std::vector<double> density(NumGridNodes);
 
-		DFT::Potential potential;
+		Potential potential;
 		potential.m_potentialValues.resize(NumGridNodes);
 
 
-		std::vector<DFT::Subshell> levels = DFT::AufbauPrinciple::GetSubshells(Z);
+		std::vector<Subshell> levels = AufbauPrinciple::GetSubshells(Z);
 		std::sort(levels.begin(), levels.end());
 
 		double Eold = 0;
@@ -336,10 +339,10 @@ namespace DFT {
 			density[i] = constDens;
 
 
-		DFT::PoissonSolver poissonSolver(MultigridLevels, deltaGrid);
+		PoissonSolver poissonSolver(MultigridLevels, deltaGrid);
 
 		std::vector<double> UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
-		std::vector<double> Vexc = DFT::VWNExchCor::Vexc(density);
+		std::vector<double> Vexc = VWNExchCor::Vexc(density);
 
 
 		potential.m_potentialValues[0] = 0;
@@ -360,7 +363,7 @@ namespace DFT {
 
 			std::vector<double> newDensity(density.size(), 0);
 
-			DFT::Numerov<DFT::NumerovFunctionNonUniformGrid> numerov(potential, deltaGrid, MaxR, NumGridNodes);
+			Numerov<NumerovFunctionNonUniformGrid> numerov(potential, deltaGrid, MaxR, NumGridNodes);
 			
 			bool reallyConverged = true;
 			double BottomEnergy = -double(Z) * Z - 1.;
