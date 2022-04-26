@@ -101,7 +101,7 @@ DFTAtomFrame::DFTAtomFrame(const wxString& title, const wxPoint& pos, const wxSi
 
 	richTextCtrl = new wxRichTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL | wxBORDER_NONE /*| wxWANTS_CHARS*/ | wxTE_MULTILINE | wxTE_READONLY);
 
-	wxFont font(14, wxROMAN, wxNORMAL, wxNORMAL);
+	wxFont font(14, wxFONTFAMILY_ROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
 	richTextCtrl->SetFont(font);
 	richTextCtrl->GetCaret()->Hide();

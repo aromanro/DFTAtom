@@ -26,7 +26,7 @@ EVT_CLOSE(OptionsFrame::OnClose)
 wxEND_EVENT_TABLE()
 
 OptionsFrame::OptionsFrame(const Options& opt, const wxString & title, wxWindow* parent)
-	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxSize(400, 250)) 
+	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxSize(300, 175)) 
 {
 	options = opt;
 	CreateControls();
@@ -66,60 +66,68 @@ void OptionsFrame::CreateControls()
 
 	// box with margin to contain option controls
 	wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
-	vbox->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL| wxGROW | wxALL, 5);
+	vbox->Add(boxSizer, 0, wxGROW, 5);
+
+	boxSizer->AddSpacer(5);
 
 	// *****************************************************************
 	// Controls
 
 	wxBoxSizer* box = new wxBoxSizer(wxHORIZONTAL);
-	boxSizer->Add(box, 0, wxGROW|wxALL, 5);
+	boxSizer->Add(box, 0, wxGROW, 5);
 
 	wxStaticText* label = new wxStaticText(this, wxID_STATIC, "&Z:", wxDefaultPosition, wxSize(60, -1), wxALIGN_RIGHT);
-	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	
 	wxString str = wxString::Format(wxT("%i"), options.Z);
 	wxTextCtrl* ZCtrl = new wxTextCtrl(this, ID_Z, str, wxDefaultPosition, wxSize(60, -1), 0);
-	box->Add(ZCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(ZCtrl, 0, wxALIGN_CENTER_VERTICAL, 5);
 
-	box->Add(5, 5, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5); // pushes to the right
+	box->Add(5, 5, 1, wxALIGN_CENTER_VERTICAL, 5); // pushes to the right
 
 	label = new wxStaticText(this, wxID_STATIC, "&Multigrid levels:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 
 	str = wxString::Format(wxT("%i"), options.MultigridLevels);
 	wxTextCtrl* MultigridCtrl = new wxTextCtrl(this, ID_MULTIGRID, str, wxDefaultPosition, wxSize(60, -1), 0);
-	box->Add(MultigridCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(MultigridCtrl, 0, wxALIGN_CENTER_VERTICAL, 5);
 
+	box->AddSpacer(5);
+
+	boxSizer->AddSpacer(5);
 
 	box = new wxBoxSizer(wxHORIZONTAL);
-	boxSizer->Add(box, 0, wxGROW|wxALL, 5);
+	boxSizer->Add(box, 0, wxGROW, 5);
 
 	label = new wxStaticText(this, wxID_STATIC, "Max &R:", wxDefaultPosition, wxSize(60, -1), wxALIGN_RIGHT);
-	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 
 	str = wxString::Format(wxT("%f"), options.MaxR);
 	wxTextCtrl* RCtrl = new wxTextCtrl(this, ID_R, str, wxDefaultPosition, wxSize(60, -1), 0);
-	box->Add(RCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(RCtrl, 0, wxALIGN_CENTER_VERTICAL, 5);
 
-	box->Add(5, 5, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5); // pushes to the right
+	box->Add(5, 5, 1, wxALIGN_CENTER_VERTICAL, 5); // pushes to the right
 
 	label = new wxStaticText(this, wxID_STATIC, "&Delta grid:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 
 	str = wxString::Format(wxT("%f"), options.deltaGrid);
 	wxTextCtrl* DeltaCtrl = new wxTextCtrl(this, ID_DELTA, str, wxDefaultPosition, wxSize(60, -1), 0);
-	box->Add(DeltaCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(DeltaCtrl, 0, wxALIGN_CENTER_VERTICAL, 5);
 
+	box->AddSpacer(5);
+
+	boxSizer->AddSpacer(5);
 
 	box = new wxBoxSizer(wxHORIZONTAL);
-	boxSizer->Add(box, 0, wxGROW|wxALL, 5);
+	boxSizer->Add(box, 0, wxGROW, 5);
 
 	label = new wxStaticText(this, wxID_STATIC, "Mi&xing:", wxDefaultPosition, wxSize(60, -1), wxALIGN_RIGHT);
-	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(label, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 
 	str = wxString::Format(wxT("%f"), options.alpha);
 	wxTextCtrl* AlphaCtrl = new wxTextCtrl(this, ID_ALPHA, str, wxDefaultPosition, wxSize(60, -1), 0);
-	box->Add(AlphaCtrl, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	box->Add(AlphaCtrl, 0, wxALIGN_CENTER_VERTICAL, 5);
 
 	// *****************************************************************
 	// Validators
@@ -150,8 +158,10 @@ void OptionsFrame::CreateControls()
 
 	// *****************************************************************
 	
+	boxSizer->AddSpacer(5);
+
 	wxStaticLine* line = new wxStaticLine(this, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-	boxSizer->Add(line, 0, wxGROW|wxALL, 5);
+	boxSizer->Add(line, 0, wxGROW, 5);
 
 	// bottom box with ok & cancel buttons
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
