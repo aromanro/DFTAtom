@@ -161,12 +161,17 @@ namespace DFT {
 
 				potential.m_potentialValues[i] = (-Z + UHartree[i]) / position + Vexc[i];
 
+				const double position2 = position * position;
+
 				nuclear[i] = position * Z * density[i];
-				exccor[i] = position * position * density[i] * Vexc[i];
-				eexcDeriv[i] = position * position * density[i] * eexcDeriv[i];
+
+				const double position2density = position2 * density[i];
+
+				exccor[i] = position2density * Vexc[i];
+				eexcDeriv[i] = position2density * eexcDeriv[i];
 				hartree[i] = position * density[i] * UHartree[i];
 
-				potentiale[i] = position * position * density[i] * potential.m_potentialValues[i];
+				potentiale[i] = position2density * potential.m_potentialValues[i];
 			}
 
 			const double Enuclear = -4 * M_PI * DFT::Integral::Boole(h, nuclear);
