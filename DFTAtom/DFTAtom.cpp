@@ -161,15 +161,15 @@ namespace DFT {
 
 				potential.m_potentialValues[i] = (-Z + UHartree[i]) / position + Vexc[i];
 
-				const double position2 = position * position;
+				const double positiondensity = position * density[i];
 
-				nuclear[i] = position * Z * density[i];
+				nuclear[i] = Z * positiondensity;
 
-				const double position2density = position2 * density[i];
+				const double position2density = position * position * density[i];
 
 				exccor[i] = position2density * Vexc[i];
 				eexcDeriv[i] = position2density * eexcDeriv[i];
-				hartree[i] = position * density[i] * UHartree[i];
+				hartree[i] = positiondensity * UHartree[i];
 
 				potentiale[i] = position2density * potential.m_potentialValues[i];
 			}
@@ -427,12 +427,17 @@ namespace DFT {
 
 				potential.m_potentialValues[i] = (-Z + UHartree[i]) / position + Vexc[i];
 
-				nuclear[i] = position * Z * density[i] * cnst;
-				exccor[i] = position * position * density[i] * Vexc[i] * cnst;
-				eexcDeriv[i] = position * position * density[i] * eexcDeriv[i] * cnst;
-				hartree[i] = position * density[i] * UHartree[i] * cnst;
+				const double positiondensity = position * density[i] * cnst;
 
-				potentiale[i] = position * position * density[i] * potential.m_potentialValues[i] * cnst;
+				nuclear[i] = Z * positiondensity;
+
+				const double position2density = position * position * density[i] * cnst;
+
+				exccor[i] = position2density * Vexc[i];
+				eexcDeriv[i] = position2density * eexcDeriv[i];
+				hartree[i] = positiondensity * UHartree[i];
+
+				potentiale[i] = position2density * potential.m_potentialValues[i];
 			}
 
 			const double Enuclear = -4 * M_PI * DFT::Integral::Boole(1, nuclear);
