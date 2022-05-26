@@ -8,6 +8,9 @@ namespace DFT {
 
 	class PoissonSolver
 	{
+	protected:
+		const double fourM_PI = 4. * M_PI;
+
 	public:
 		PoissonSolver(int levels, double dGrid = 0, int Ncoarse = 3);
 
@@ -35,7 +38,7 @@ namespace DFT {
 			// we have the residual equal with the 'charge'
 
 			for (int i = 0; i < Source.size(); ++i)
-				Source[i] *= delta2 * 4 * M_PI * density[i];
+				Source[i] *= delta2 * fourM_PI * density[i];
 
 
 			SetBoundaries(0, Z);
@@ -67,7 +70,7 @@ namespace DFT {
 
 			for (int i = 1; i < Source.size() - 1; ++i)
 				// step becomes 1 for the nonuniform grid, so multiplication with delta2 as above disappears from here
-				Source[i] *= 4. * M_PI * Rp2delta2 * exp(i * twodelta) * density[i];
+				Source[i] *= fourM_PI * Rp2delta2 * exp(i * twodelta) * density[i];
 
 
 			SetBoundaries(0, Z);

@@ -23,10 +23,10 @@ namespace DFT {
 			result2[i] = Psi[i] * Psi[i];
 
 		const double integralForSquare = DFT::Integral::Boole(h, result2);
-		const double norm = sqrt(integralForSquare);
+		const double unorm = 1. / sqrt(integralForSquare);
 
 		for (int i = 0; i < Psi.size(); ++i)
-			Psi[i] /= norm;
+			Psi[i] *= unorm;
 	}
 
 
@@ -47,10 +47,10 @@ namespace DFT {
 		}
 
 		const double integralForSquare = DFT::Integral::Boole(1, result2); // for nonuniform case the step is 1
-		const double norm = sqrt(integralForSquare);
+		const double unorm = 1. / sqrt(integralForSquare);
 
 		for (int i = 0; i < Psi.size(); ++i)
-			Psi[i] /= norm;
+			Psi[i] *= unorm;
 	}
 
 
@@ -102,6 +102,7 @@ namespace DFT {
 
 		bool lastTimeConverged = false;
 
+		static const double fourM_PI = 4. * M_PI;
 
 		for (int sp = 0; sp < 100; ++sp)
 		{
@@ -126,7 +127,7 @@ namespace DFT {
 				// the actual integration for the 'true' wavefunction gives a 4 M_PI
 				// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
 
-				newDensity[i] /= 4. * M_PI * position * position;
+				newDensity[i] /= fourM_PI * position * position;
 				density[i] = alpha * density[i] + oneMinusAlpha * newDensity[i];
 			}
 
@@ -174,16 +175,16 @@ namespace DFT {
 				potentiale[i] = position2density * potential.m_potentialValues[i];
 			}
 
-			const double Enuclear = -4 * M_PI * DFT::Integral::Boole(h, nuclear);
+			const double Enuclear = -fourM_PI * DFT::Integral::Boole(h, nuclear);
 
 			double Exc = 4 * M_PI * DFT::Integral::Boole(h, exccor);
 
-			const double eExcDif = 4 * M_PI * DFT::Integral::Boole(h, eexcDeriv);
+			const double eExcDif = fourM_PI * DFT::Integral::Boole(h, eexcDeriv);
 			Exc += eExcDif;
 
 			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(h, hartree);
 
-			const double Epotential = 4 * M_PI * DFT::Integral::Boole(h, potentiale);
+			const double Epotential = fourM_PI * DFT::Integral::Boole(h, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
@@ -341,8 +342,9 @@ namespace DFT {
 
 		double Eold = 0;
 
+		static const double fourM_PI = 4. * M_PI;
 
-		const double volume = 4. / 3. * M_PI * MaxR * MaxR * MaxR;
+		const double volume = fourM_PI / 3. * MaxR * MaxR * MaxR;
 		const double constDens = Z / volume;
 
 		density[0] = 0;
@@ -364,6 +366,7 @@ namespace DFT {
 		}
 
 		bool lastTimeConverged = false;
+
 
 		
 		for (int sp = 0; sp < 100; ++sp)
@@ -389,7 +392,7 @@ namespace DFT {
 				// the actual integration for the 'true' wavefunction gives a 4 M_PI
 				// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
 
-				newDensity[i] /= 4. * M_PI * position * position;
+				newDensity[i] /= fourM_PI * position * position;
 				density[i] = alpha * density[i] + oneMinusAlpha * newDensity[i];
 			}
 
@@ -440,15 +443,15 @@ namespace DFT {
 				potentiale[i] = position2density * potential.m_potentialValues[i];
 			}
 
-			const double Enuclear = -4 * M_PI * DFT::Integral::Boole(1, nuclear);
-			double Exc = 4 * M_PI * DFT::Integral::Boole(1, exccor);
+			const double Enuclear = -fourM_PI * DFT::Integral::Boole(1, nuclear);
+			double Exc = fourM_PI * DFT::Integral::Boole(1, exccor);
 
-			const double eExcDif = 4 * M_PI * DFT::Integral::Boole(1, eexcDeriv);
+			const double eExcDif = fourM_PI * DFT::Integral::Boole(1, eexcDeriv);
 			Exc += eExcDif;
 			
 			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(1, hartree);
 
-			const double Epotential = 4 * M_PI * DFT::Integral::Boole(1, potentiale);
+			const double Epotential = fourM_PI * DFT::Integral::Boole(1, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
