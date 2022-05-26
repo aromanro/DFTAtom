@@ -37,8 +37,9 @@ namespace DFT {
 			// it happens that for our current 'guess' of the solution (zero everywhere except for known boundary values)		
 			// we have the residual equal with the 'charge'
 
+			const double delta2fourM_PI = delta2 * fourM_PI;
 			for (int i = 0; i < Source.size(); ++i)
-				Source[i] *= delta2 * fourM_PI * density[i];
+				Source[i] *= delta2fourM_PI * density[i];
 
 
 			SetBoundaries(0, Z);
@@ -67,10 +68,10 @@ namespace DFT {
 			const double Rp2delta2 = Rp * Rp * delta2grid;
 			const double twodelta = 2. * deltaGrid;
 
-
+			const double fourM_PIRp2delta2 = fourM_PI * Rp2delta2;
 			for (int i = 1; i < Source.size() - 1; ++i)
 				// step becomes 1 for the nonuniform grid, so multiplication with delta2 as above disappears from here
-				Source[i] *= fourM_PI * Rp2delta2 * exp(i * twodelta) * density[i];
+				Source[i] *= fourM_PIRp2delta2 * exp(i * twodelta) * density[i];
 
 
 			SetBoundaries(0, Z);
