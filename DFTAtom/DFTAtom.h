@@ -15,6 +15,8 @@ namespace DFT {
 		static void CalculateUniform(int Z, int MultigridLevels, double alpha, double MaxR);
 
 	private:
+		static constexpr double fourM_PI = 4. * M_PI;
+
 		static void LoopOverLevels(Numerov<NumerovFunctionRegularGrid>& numerov, std::vector<Subshell>& levels, std::vector<double>& newDensity, double& Eelectronic, double& BottomEnergy, int NumSteps, double MaxR, double h, bool& reallyConverged, double energyErr);
 		static void LocateInterval(Numerov<NumerovFunctionRegularGrid>& numerov, double& TopEnergy, double& BottomEnergy, double MaxR, int L, int NumSteps, int NumNodes, double energyErr);
 

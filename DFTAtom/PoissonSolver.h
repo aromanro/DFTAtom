@@ -9,7 +9,7 @@ namespace DFT {
 	class PoissonSolver
 	{
 	protected:
-		const double fourM_PI = 4. * M_PI;
+		static constexpr double fourM_PI = 4. * M_PI;
 
 	public:
 		PoissonSolver(int levels, double dGrid = 0, int Ncoarse = 3);

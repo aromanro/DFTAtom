@@ -102,8 +102,6 @@ namespace DFT {
 
 		bool lastTimeConverged = false;
 
-		static const double fourM_PI = 4. * M_PI;
-
 		for (int sp = 0; sp < 100; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
@@ -341,8 +339,6 @@ namespace DFT {
 		std::sort(levels.begin(), levels.end());
 
 		double Eold = 0;
-
-		static const double fourM_PI = 4. * M_PI;
 
 		const double volume = fourM_PI / 3. * MaxR * MaxR * MaxR;
 		const double constDens = Z / volume;
