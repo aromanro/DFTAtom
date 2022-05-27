@@ -11,15 +11,33 @@ namespace DFT {
 	// Vosko-Wilk-Nusair 
 	// see Richard M. Martin, Electronic Structure, Basic Theory and Practical Methods
 	// also here: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-exchange-term
+	// and here: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations/atomic-reference-data-electronic-6-3
 
 	class VWNExchCor
 	{
 	protected:
+		static constexpr double fourM_PI = 4. * M_PI;
+
+		// values for 'paramagnetic' variant (used for LDA)
 		static constexpr double A = 0.0310907; // actually 0.5 * A
 		static constexpr double y0 = -0.10498;
 		static constexpr double b = 3.72744;
 		static constexpr double c = 12.93532;
 		static constexpr double Y0 = y0 * y0 + b * y0 + c;
+
+		// values for 'feromagnetic' variant (useful for LSDA)
+		static constexpr double AF = 0.01554535; // actually 0.5 * A
+		static constexpr double y0F = -0.325;
+		static constexpr double bF = 7.06042;
+		static constexpr double cF = 18.0578;
+		static constexpr double Y0F = y0F * y0F + bF * y0F + cF;
+
+		// values for 'spin stiffness' (useful for LSDA)
+		static constexpr double Aalpha = -1. / (6. * M_PI * M_PI); // actually 0.5 * A
+		static constexpr double y0F = -0.0047584;
+		static constexpr double bF = 1.13107;
+		static constexpr double cF = 13.0045;
+		static constexpr double Y0F = y0F * y0F + bF * y0F + cF;
 
 	public:
 		static std::vector<double> Vexc(const std::vector<double>& n)
@@ -31,20 +49,17 @@ namespace DFT {
 
 			std::vector<double> res(n.size());
 
-
 			for (int i = 0; i < n.size(); ++i)
 			{
 				const double ro = n[i];
 				
-				const double rs = pow(3. / (4.*M_PI*ro), 1. / 3.);
+				const double rs = pow(3. / (fourM_PI*ro), 1. / 3.);
 
 				const double y = sqrt(rs);
 				const double Y = y * y + b * y + c;
 
 				const double atanQ = atan(Q / (2.*y + b));
 				const double dify = y - y0;
-
-
 
 				res[i] = -X1 / rs // exchange term
 					//the following make the Vc as in B.1
@@ -63,12 +78,11 @@ namespace DFT {
 				
 			std::vector<double> res(n.size());
 
-
 			for (int i = 0; i < n.size(); ++i)
 			{
 				const double ro = n[i];
 				
-				const double rs = pow(4.*M_PI / 3.*ro, -1. / 3.);
+				const double rs = pow(fourM_PI / 3.*ro, -1. / 3.);
 				const double y = sqrt(rs);
 				const double Y = y * y + b * y + c;
 				const double dify = y - y0;
