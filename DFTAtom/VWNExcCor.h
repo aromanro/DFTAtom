@@ -34,10 +34,10 @@ namespace DFT {
 
 		// values for 'spin stiffness' (useful for LSDA)
 		static constexpr double Aalpha = -1. / (6. * M_PI * M_PI); // actually 0.5 * A
-		static constexpr double y0F = -0.0047584;
-		static constexpr double bF = 1.13107;
-		static constexpr double cF = 13.0045;
-		static constexpr double Y0F = y0F * y0F + bF * y0F + cF;
+		static constexpr double y0Falpha = -0.0047584;
+		static constexpr double bFalpha = 1.13107;
+		static constexpr double cFalpha = 13.0045;
+		static constexpr double Y0Falpha = y0Falpha * y0Falpha + bFalpha * y0Falpha + cFalpha;
 
 	public:
 		static std::vector<double> Vexc(const std::vector<double>& n)
