@@ -42,8 +42,9 @@ namespace DFT {
 
 			sum += 4. * sum4 + 2. * sum2;
 
+			constexpr double coef = 1. / 3.;
 
-			return sum * delta / 3.;
+			return sum * delta * coef;
 		}
 
 		template<typename T> static T Boole(const double delta, const std::vector<T>& values)
@@ -72,7 +73,9 @@ namespace DFT {
 
 			sum += 32. * sum32 + 12. * sum12 + 14. * sum14;
 
-			return sum * delta * 2. / 45.;
+			constexpr double coef = 2. / 45.;
+
+			return sum * delta * coef;
 		}
 	};
 
