@@ -158,6 +158,7 @@
     <ClInclude Include="DFTAtom.h" />
     <ClInclude Include="DFTAtomApp.h" />
     <ClInclude Include="DFTAtomFrame.h" />
+    <ClInclude Include="ExcCor.h" />
     <ClInclude Include="Integral.h" />
     <ClInclude Include="Numerov.h" />
     <ClInclude Include="Options.h" />
