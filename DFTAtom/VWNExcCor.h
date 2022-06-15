@@ -54,14 +54,15 @@ namespace DFT {
 
 		inline static double f(double zeta)
 		{
-			return (pow(1. + zeta, 4./3.) + pow(1. - zeta, 4. / 3.) - 2.) / (2. * (pow(2., 1. / 3.) - 1.)); // eq 5 from NIST
+			static const double div = 2. * (pow(2., 1. / 3.) - 1.);
+
+			return (pow(1. + zeta, 4. / 3.) + pow(1. - zeta, 4. / 3.) - 2.) / div; // eq 5 from NIST
 		}
 
 	public:
-		static std::vector<double> Vexc(const std::vector<double>& n)
+		static std::vector<double> exc(const std::vector<double>& n)
 		{
-			static const double
-				X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
+			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 							
 			std::vector<double> res(n.size());
 
@@ -93,9 +94,9 @@ namespace DFT {
 
 			for (int i = 0; i < n.size(); ++i)
 			{
-				const double ro = n[i];
-				
-				const double rs = pow(fourM_PI / 3.*ro, -1. / 3.);
+				const double ro = n[i];				
+				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);
+
 				const double y = sqrt(rs);
 				const double Y = y * y + bP * y + cP;
 				const double dify = y - y0P;

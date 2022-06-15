@@ -506,7 +506,7 @@ namespace DFT {
 			for (long int i = matchPoint + 1; i < size; ++i)
 				Psi[i] *= factor;
 
-			return std::move(Psi);
+			return Psi;
 		}
 
 		NumerovFunction function;

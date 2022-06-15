@@ -9,6 +9,8 @@
 #include "Integral.h"
 #include "VWNExcCor.h"
 
+#include "ExcCor.h"
+
 #include "DFTAtom.h"
 
 namespace DFT {
@@ -90,7 +92,7 @@ namespace DFT {
 		PoissonSolver poissonSolver(MultigridLevels);
 
 		std::vector<double> UHartree = poissonSolver.SolvePoissonUniform(Z, MaxR, density);
-		std::vector<double> Vexc = VWNExchCor::Vexc(density);
+		std::vector<double> Vexc = VWNExchCor::exc(density);
 
 
 		potential.m_potentialValues[0] = 0;
@@ -131,7 +133,7 @@ namespace DFT {
 
 
 			UHartree = poissonSolver.SolvePoissonUniform(Z, MaxR, density);
-			Vexc = VWNExchCor::Vexc(density);
+			Vexc = VWNExchCor::exc(density);
 
 			// Nuclear energy:
 			std::vector<double> nuclear(NumGridNodes);
@@ -351,7 +353,9 @@ namespace DFT {
 		PoissonSolver poissonSolver(MultigridLevels, deltaGrid);
 
 		std::vector<double> UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
-		std::vector<double> Vexc = VWNExchCor::Vexc(density);
+		
+		//std::vector<double> Vexc = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::exc(density);
+		std::vector<double> Vexc = VWNExchCor::exc(density);
 
 
 		potential.m_potentialValues[0] = 0;
@@ -394,7 +398,8 @@ namespace DFT {
 
 
 			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
-			Vexc = DFT::VWNExchCor::Vexc(density);
+			//Vexc = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::exc(density);
+			Vexc = DFT::VWNExchCor::exc(density);
 
 			// Nuclear energy:
 			std::vector<double> nuclear(NumGridNodes);
@@ -402,6 +407,7 @@ namespace DFT {
 			// Exchange-correlation energy:
 			std::vector<double> exccor(NumGridNodes);
 
+			//std::vector<double> eexcDeriv = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::eexcDif(density);
 			std::vector<double> eexcDeriv = DFT::VWNExchCor::eexcDif(density);
 
 			// Hartree energy:
