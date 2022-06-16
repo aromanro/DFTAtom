@@ -80,7 +80,7 @@ namespace DFT {
 				const double bprs = b / rs;
 				const double bprs2 = bprs / rs;
 
-				res[i] -= a / (1. + bprs + bprs2) * (bprs + 2. * bprs2) / 3.;
+				res[i] += a / (1. + bprs + bprs2) * (bprs + 2. * bprs2) * rs / 3.;
 			}
 
 			return res;
