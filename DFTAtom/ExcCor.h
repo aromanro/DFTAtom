@@ -35,7 +35,6 @@ namespace DFT {
 		static constexpr double threeDivM_PI = 3. / M_PI;
 
 	public:
-
 		static std::vector<double> Vexc(const std::vector<double>& n)
 		{
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
