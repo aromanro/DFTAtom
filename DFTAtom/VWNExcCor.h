@@ -107,7 +107,6 @@ namespace DFT {
 				}
 
 				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);
-
 				const double y = sqrt(rs);
 				const double Y = y * y + bP * y + cP;
 				const double dify = y - y0P;
@@ -120,7 +119,7 @@ namespace DFT {
 		}
 
 
-		static std::vector<double> exc(const std::vector<double>& na, const std::vector<double>& nb)
+		static std::vector<double> Vexc(const std::vector<double>& na, const std::vector<double>& nb)
 		{
 			int sz = static_cast<int>(na.size());
 			if (sz != nb.size()) return {};
@@ -170,15 +169,87 @@ namespace DFT {
 
 				const double eca = F(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA); // B.5
 
+				const double ecpd = ecDif(y, difyP, AP, y0P, bP, cP, YP);
+				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, YF);
+				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
+
 				res[i] = ep + (ef - ep) * fval // exchange term
 					// paramagnetic part:
-					+ ecf
+					+ ecp
 					// the rest of it:
-					+ eca * fval / fdd * (1 + pow(zeta, 4.) * (fdd / eca * (ecf - ecp) - 1.));
+					+ eca * fval / fdd * (1 + pow(zeta, 4.) * (fdd / eca * (ecf - ecp) - 1.))
+					// now the derivative
+					- 1. / 3. * (ecpd // paramagnetic part
+						+ ecad * fval / fdd * (1 + pow(zeta, 4.) * (fdd / ecad * (ecfd - ecpd) - 1.)));
 			}
 
 			return res;
 		}
+
+
+		static std::vector<double> eexcDif(const std::vector<double>& na, const std::vector<double>& nb)
+		{
+			int sz = static_cast<int>(na.size());
+			if (sz != nb.size()) return {};
+
+			static const double	X1 = 0.25 * pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
+			static const double X2 = pow(2., 1. / 3.);
+			static const double fdd = 2. / (9. * (pow(2., 1. / 3.) - 1.));
+
+			std::vector<double> res(sz);
+
+			for (int i = 0; i < sz; ++i)
+			{
+				const double roa = na[i];
+				const double rob = nb[i];
+				const double n = roa + rob;
+				if (n < 1E-18)
+				{
+					res[i] = 0;
+					continue;
+				}
+
+
+				const double rs = pow(3. / (fourM_PI * n), 1. / 3.);
+
+				const double ep = X1 / rs;
+				const double ef = X2 * ep;
+
+				const double zeta = (roa - rob) / n;
+
+				const double fval = f(zeta);
+
+				const double y = sqrt(rs);
+
+				const double YP = y * y + bP * y + cP;
+				const double difyP = y - y0P;
+
+
+				const double ecp = F(y, difyP, AP, y0P, bP, cP, Y0P, YP); // B.5
+
+				const double YF = y * y + bF * y + cF;
+				const double difyF = y - y0F;
+
+				const double ecf = F(y, difyF, AF, y0F, bF, cF, Y0F, YF); // B.5
+
+				const double YA = y * y + balpha * y + calpha;
+				const double difyA = y - y0alpha;
+
+				const double eca = F(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA); // B.5
+
+				const double ecpd = ecDif(y, difyP, AP, y0P, bP, cP, YP);
+				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, YF);
+				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
+
+				res[i] = ep + (ef - ep) * fval // exchange term
+					// correlation term:
+					+ 1. / 3. * (ecpd // paramagnetic part
+						+ ecad * fval / fdd * (1 + pow(zeta, 4.) * (fdd / ecad * (ecfd - ecpd) - 1.)));
+			}
+
+			return res;
+		}
+
 	};
 
 }
