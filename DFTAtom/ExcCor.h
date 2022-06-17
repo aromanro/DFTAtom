@@ -46,6 +46,12 @@ namespace DFT {
 			for (int i = 0; i < sz; ++i)
 			{
 				const double ro = n[i];
+				if (ro < 1E-18)
+				{
+					res[i] = 0;
+					continue;
+				}
+
 				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);
 
 				// exchange
@@ -53,8 +59,10 @@ namespace DFT {
 
 				// correlation
 				const double bprs = b / rs;
+				const double bprs2 = bprs / rs;
 
-				res[i] += a * log(1. + bprs + bprs / rs);
+				res[i] += a * log(1. + bprs + bprs / rs)
+					- a / (1. + bprs + bprs2) * (bprs + 2. * bprs2) * rs / 3.;
 			}
 
 			return res;
@@ -71,6 +79,12 @@ namespace DFT {
 			for (int i = 0; i < sz; ++i)
 			{
 				const double ro = n[i];
+				if (ro < 1E-18)
+				{
+					res[i] = 0;
+					continue;
+				}
+
 				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);
 
 				// exchange
