@@ -249,7 +249,5 @@ namespace DFT {
 
 			return res;
 		}
-
 	};
-
 }
