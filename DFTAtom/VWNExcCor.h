@@ -34,10 +34,10 @@ namespace DFT {
 
 		// values for 'spin stiffness' (useful for LSDA)
 		static constexpr double Aalpha = -1. / (6. * M_PI * M_PI); // actually 0.5 * A
-		static constexpr double y0Falpha = -0.0047584;
-		static constexpr double bFalpha = 1.13107;
-		static constexpr double cFalpha = 13.0045;
-		static constexpr double Y0Falpha = y0Falpha * y0Falpha + bFalpha * y0Falpha + cFalpha;
+		static constexpr double y0alpha = -0.0047584;
+		static constexpr double balpha = 1.13107;
+		static constexpr double calpha = 13.0045;
+		static constexpr double Y0alpha = y0alpha * y0alpha + balpha * y0alpha + calpha;
 
 		inline static double F(double y /*sqrt(rs)*/, double dify /*y - y0*/, double A, double y0, double b, double c, double Y0, double Y)
 		{
@@ -60,7 +60,7 @@ namespace DFT {
 		}
 
 	public:
-		static std::vector<double> exc(const std::vector<double>& n)
+		static std::vector<double> Vexc(const std::vector<double>& n)
 		{
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 							
@@ -69,6 +69,11 @@ namespace DFT {
 			for (int i = 0; i < n.size(); ++i)
 			{
 				const double ro = n[i];
+				if (ro < 1E-18)
+				{
+					res[i] = 0;
+					continue;
+				}
 				
 				const double rs = pow(3. / (fourM_PI*ro), 1. / 3.);
 				const double y = sqrt(rs);
@@ -94,7 +99,13 @@ namespace DFT {
 
 			for (int i = 0; i < n.size(); ++i)
 			{
-				const double ro = n[i];				
+				const double ro = n[i];	
+				if (ro < 1E-18)
+				{
+					res[i] = 0;
+					continue;
+				}
+
 				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);
 
 				const double y = sqrt(rs);
@@ -103,6 +114,67 @@ namespace DFT {
 
 				res[i] = X1 / rs // exchange term
 					+ 1./ 3. * ecDif(y, dify, AP, y0P, bP, cP, Y); // B.6
+			}
+
+			return res;
+		}
+
+
+		static std::vector<double> exc(const std::vector<double>& na, const std::vector<double>& nb)
+		{
+			int sz = static_cast<int>(na.size());
+			if (sz != nb.size()) return {};
+
+			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
+			static const double X2 = pow(2., 1. / 3.);
+			static const double fdd = 2. / (9. * (pow(2., 1. / 3.) - 1.));
+
+			std::vector<double> res(sz);
+
+			for (int i = 0; i < sz; ++i)
+			{
+				const double roa = na[i];
+				const double rob = nb[i];
+				const double n = roa + rob;
+				if (n < 1E-18)
+				{
+					res[i] = 0;
+					continue;
+				}
+
+
+				const double rs = pow(3. / (fourM_PI * n), 1. / 3.);
+
+				const double ep = -X1 / rs;
+				const double ef = X2 * ep;
+
+				const double zeta = (roa - rob) / n;
+
+				const double fval = f(zeta);
+
+				const double y = sqrt(rs);
+
+				const double YP = y * y + bP * y + cP;
+				const double difyP = y - y0P;
+
+
+				const double ecp = F(y, difyP, AP, y0P, bP, cP, Y0P, YP); // B.5
+
+				const double YF = y * y + bF * y + cF;
+				const double difyF = y - y0F;
+
+				const double ecf = F(y, difyF, AF, y0F, bF, cF, Y0F, YF); // B.5
+
+				const double YA = y * y + balpha * y + calpha;
+				const double difyA = y - y0alpha;
+
+				const double eca = F(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA); // B.5
+
+				res[i] = ep + (ef - ep) * fval // exchange term
+					// paramagnetic part:
+					+ ecf
+					// the rest of it:
+					+ eca * fval / fdd * (1 + pow(zeta, 4.) * (fdd / eca * (ecf - ecp) - 1.));
 			}
 
 			return res;

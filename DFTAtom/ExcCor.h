@@ -36,7 +36,7 @@ namespace DFT {
 
 	public:
 
-		static std::vector<double> exc(const std::vector<double>& n)
+		static std::vector<double> Vexc(const std::vector<double>& n)
 		{
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 
