@@ -57,7 +57,7 @@ namespace DFT {
 
 
 
-	void DFTAtom::CalculateUniform(int Z, int MultigridLevels, double alpha, double MaxR)
+	void DFTAtom::CalculateUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR)
 	{
 		static const double energyErr = 1E-12;
 
@@ -319,7 +319,7 @@ namespace DFT {
 	}
 
 
-	void DFTAtom::CalculateNonUniform(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
+	void DFTAtom::CalculateNonUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const double energyErr = 1E-12; 
 

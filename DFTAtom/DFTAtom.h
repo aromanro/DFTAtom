@@ -11,8 +11,8 @@ namespace DFT {
 	public:
 		static const char orb[];
 
-		static void CalculateNonUniform(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid);
-		static void CalculateUniform(int Z, int MultigridLevels, double alpha, double MaxR);
+		static void CalculateNonUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid);
+		static void CalculateUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR);
 
 	private:
 		static constexpr double fourM_PI = 4. * M_PI;
