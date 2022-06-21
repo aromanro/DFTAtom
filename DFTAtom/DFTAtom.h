@@ -14,6 +14,7 @@ namespace DFT {
 		static void CalculateNonUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid);
 		static void CalculateUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR);
 
+		static void CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid);
 	private:
 		static constexpr double fourM_PI = 4. * M_PI;
 
