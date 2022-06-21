@@ -3,8 +3,7 @@
 #include <cassert>
 #include <vector>
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include "ExcCorBase.h"
 
 namespace DFT {
 
@@ -13,7 +12,7 @@ namespace DFT {
 	// also here: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations-exchange-term
 	// and here: https://www.nist.gov/pml/atomic-reference-data-electronic-structure-calculations/atomic-reference-data-electronic-6-3
 
-	class VWNExchCor
+	class VWNExchCor : public ExcCorBase
 	{
 	protected:
 		static constexpr double fourM_PI = 4. * M_PI;
@@ -50,13 +49,6 @@ namespace DFT {
 		inline static double ecDif(double y, double dify, double A, double y0, double b, double c, double Y)
 		{
 			return A * (c * dify - b * y0 * y) / (dify * Y);
-		}
-
-		inline static double f(double zeta)
-		{
-			static const double div = 2. * (pow(2., 1. / 3.) - 1.);
-
-			return (pow(1. + zeta, 4. / 3.) + pow(1. - zeta, 4. / 3.) - 2.) / div; // eq 5 from NIST
 		}
 
 	public:
@@ -119,7 +111,7 @@ namespace DFT {
 		}
 
 
-		static std::vector<double> Vexc(const std::vector<double>& na, const std::vector<double>& nb)
+		static std::vector<double> Vexc(const std::vector<double>& na, const std::vector<double>& nb, std::vector<double>& va, std::vector<double>& vb)
 		{
 			int sz = static_cast<int>(na.size());
 			if (sz != nb.size()) return {};
@@ -129,6 +121,9 @@ namespace DFT {
 			static const double fdd = 2. / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
+
+			va.resize(sz);
+			vb.resize(sz);
 
 			for (int i = 0; i < sz; ++i)
 			{
@@ -181,6 +176,10 @@ namespace DFT {
 					// now the derivative
 					- 1. / 3. * (ecpd // paramagnetic part
 						+ ecad * fval / fdd * (1 + pow(zeta, 4.) * (fdd / ecad * (ecfd - ecpd) - 1.)));
+
+				const double diff = df(zeta);
+				va[i] = res[i] + (1. - zeta) * diff;
+				vb[i] = res[i] + (1. + zeta) * diff;
 			}
 
 			return res;

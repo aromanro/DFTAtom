@@ -68,5 +68,8 @@
     <ClInclude Include="ExcCor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ExcCorBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

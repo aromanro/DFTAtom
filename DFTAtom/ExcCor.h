@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "ExcCorBase.h"
+
 namespace DFT {
 
 	// see https://aip.scitation.org/doi/10.1063/1.4958669
@@ -22,7 +24,7 @@ namespace DFT {
 		static constexpr double b1 = 28.3559732;
 	};
 
-	template<class Params> class ChachiyoExchCor
+	template<class Params> class ChachiyoExchCor : public ExcCorBase
 	{
 	protected:
 		static constexpr double a = (M_LN2 - 1.) / (2. * M_PI * M_PI);
@@ -97,14 +99,6 @@ namespace DFT {
 			}
 
 			return res;
-		}
-
-	protected:
-		inline static double f(double zeta)
-		{
-			static const double div = 2. * (pow(2., 1. / 3.) - 1.);
-
-			return (pow(1. + zeta, 4. / 3.) + pow(1. - zeta, 4. / 3.) - 2.) / div; // eq 5 from NIST
 		}
 	};
 
