@@ -17,7 +17,7 @@ namespace DFT {
 		// the radial Poisson eqn is L Uhartree = -4 * M_PI * r * Rho
 		// minus is implied in the poisson solver, we deal here with electron charge
 
-		std::vector<double> SolvePoissonUniform(int Z, double maxRadius, std::vector<double>& density)
+		std::vector<double> SolvePoissonUniform(int Z, double maxRadius, const std::vector<double>& density)
 		{
 			int coarsestLevel = static_cast<int>(SourceLevels.size() - 1);
 			auto &Source = SourceLevels[0];
@@ -49,7 +49,7 @@ namespace DFT {
 			return PhiLevels[0];
 		}
 
-		std::vector<double> SolvePoissonNonUniform(int Z, double maxRadius, std::vector<double>& density)
+		std::vector<double> SolvePoissonNonUniform(int Z, double maxRadius, const std::vector<double>& density)
 		{
 			auto &Source = SourceLevels[0];
 
