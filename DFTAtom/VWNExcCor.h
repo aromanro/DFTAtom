@@ -145,6 +145,7 @@ namespace DFT {
 				const double zeta = (roa - rob) / n;
 
 				const double fval = f(zeta);
+				const double dfval = df(zeta);
 
 				const double y = sqrt(rs);
 
@@ -175,11 +176,10 @@ namespace DFT {
 					+ eca * fval / fdd * (1 + pow(zeta, 4.) * (fdd / eca * (ecf - ecp) - 1.))
 					// now the derivative
 					- 1. / 3. * (ecpd // paramagnetic part
-						+ ecad * fval / fdd * (1 + pow(zeta, 4.) * (fdd / ecad * (ecfd - ecpd) - 1.)));
+						+ ecad * dfval / fdd * (1 + pow(zeta, 4.) * (fdd / ecad * (ecfd - ecpd) - 1.)));
 
-				const double diff = df(zeta);
-				va[i] = res[i] + (1. - zeta) * diff;
-				vb[i] = res[i] + (1. + zeta) * diff;
+				va[i] = res[i] + (1. - zeta) * dfval;
+				vb[i] = res[i] + (1. + zeta) * dfval;
 			}
 
 			return res;

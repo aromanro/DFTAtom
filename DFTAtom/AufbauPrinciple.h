@@ -23,6 +23,16 @@ namespace DFT {
 	class AufbauPrinciple
 	{
 	public:
+		inline static int getMaxNrAlphaElectrons(int L)
+		{
+			return 2 * L + 1;
+		}
+
+		inline static int getMaxNrElectrons(int L)
+		{
+			return 2 * getMaxNrAlphaElectrons(L);
+		}
+
 		static std::vector<Subshell> GetSubshells(int Z)
 		{
 			std::vector<Subshell> levels;
@@ -37,7 +47,7 @@ namespace DFT {
 
 					if (L <= N)
 					{
-						int nrElectrons = 2 * (2 * L + 1);
+						int nrElectrons = getMaxNrElectrons(L);
 
 						AdjustForLanthanidesAndActinides(nrElectrons, Z, N, L);
 
