@@ -653,7 +653,6 @@ namespace DFT {
 
 		int numBetaElectrons = Z - numAlphaElectrons;
 
-
 		double Eold = 0;
 
 		const double volume = fourM_PI / 3. * MaxR * MaxR * MaxR;
@@ -743,9 +742,25 @@ namespace DFT {
 				densityBeta[i] = alpha * densityBeta[i] + oneMinusAlpha * newDensity[i];
 			}
 
+			// The commented code verifies if summing up density gets back Z 
+			//double totalD = 0;
 
 			for (int i = 1; i < NumGridNodes; ++i)
+			{
 				density[i] = densityAlpha[i] + densityBeta[i];
+
+				/*
+				const double expD = exp(deltaGrid * i);
+				const double position = Rp * (expD - 1.);
+
+				const double cnst = Rp * deltaGrid * expD;
+				const double position2cnst = fourM_PI * position * position * cnst;
+
+				totalD += density[i] * position2cnst;
+				*/
+			}
+
+			//std::cout << "Total of density: " << totalD << std::endl;
 
 			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
 			//Vexc = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::Vexc(density);

@@ -110,7 +110,6 @@ namespace DFT {
 			return res;
 		}
 
-
 		static std::vector<double> Vexc(const std::vector<double>& na, const std::vector<double>& nb, std::vector<double>& va, std::vector<double>& vb)
 		{
 			int sz = static_cast<int>(na.size());
@@ -118,7 +117,7 @@ namespace DFT {
 
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 			static const double X2 = pow(2., 1. / 3.);
-			static const double fdd = 2. / (9. * (pow(2., 1. / 3.) - 1.));
+			static const double fdd = 1. / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
 
@@ -135,7 +134,6 @@ namespace DFT {
 					res[i] = 0;
 					continue;
 				}
-
 
 				const double rs = pow(3. / (fourM_PI * n), 1. / 3.);
 
@@ -169,17 +167,29 @@ namespace DFT {
 				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, YF);
 				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
 
+				const double deltaec = ecf - ecp;
+				const double deltaecd = ecfd - ecpd;
+				const double beta = fdd * deltaec / eca - 1.;
+				const double betad = fdd * fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
+				const double interp = fval / fdd * (1 + beta * pow(zeta, 4.));
+				const double interpd = fval / fdd * pow(zeta, 4.) * betad;
+
 				res[i] = ep + (ef - ep) * fval // exchange term
 					// paramagnetic part:
 					+ ecp
 					// the rest of it:
-					+ eca * fval / fdd * (1 + pow(zeta, 4.) * (fdd / eca * (ecf - ecp) - 1.))
-					// now the derivative
-					- 1. / 3. * (ecpd // paramagnetic part
-						+ ecad * dfval / fdd * (1 + pow(zeta, 4.) * (fdd / ecad * (ecfd - ecpd) - 1.)));
+					+ eca * interp;
 
-				va[i] = res[i] + (1. - zeta) * dfval;
-				vb[i] = res[i] + (1. + zeta) * dfval;
+				// TODO: something is wrong here, fix it!
+
+				// now the derivative
+				const double deriv = 1. / 3. * (ecpd // paramagnetic part
+					+ ecad * interp);// +eca * interpd);
+
+				va[i] = res[i] - (1. + zeta) * deriv;
+				vb[i] = res[i] - (1. - zeta) * deriv;
+
+				res[i] -= deriv;
 			}
 
 			return res;
@@ -193,7 +203,7 @@ namespace DFT {
 
 			static const double	X1 = 0.25 * pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 			static const double X2 = pow(2., 1. / 3.);
-			static const double fdd = 2. / (9. * (pow(2., 1. / 3.) - 1.));
+			static const double fdd = 1. / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
 
@@ -217,6 +227,7 @@ namespace DFT {
 				const double zeta = (roa - rob) / n;
 
 				const double fval = f(zeta);
+				const double dfval = df(zeta);
 
 				const double y = sqrt(rs);
 
@@ -240,10 +251,21 @@ namespace DFT {
 				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, YF);
 				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
 
+				const double deltaec = ecf - ecp;
+				const double deltaecd = ecfd - ecpd;
+				const double beta = fdd * deltaec / eca - 1.;
+				const double betad = fdd * fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
+				const double interp = fval / fdd * (1 + beta * pow(zeta, 4.));
+				const double interpd = fval / fdd * pow(zeta, 4.) * betad;
+
+				// TODO: something is wrong here, fix it!
+
+				const double deriv = 1. / 3. * (ecpd // paramagnetic part
+					+ ecad * interp);// +eca * interpd);
+
 				res[i] = ep + (ef - ep) * fval // exchange term
 					// correlation term:
-					+ 1. / 3. * (ecpd // paramagnetic part
-						+ ecad * fval / fdd * (1 + pow(zeta, 4.) * (fdd / ecad * (ecfd - ecpd) - 1.)));
+					+ deriv;
 			}
 
 			return res;

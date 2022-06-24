@@ -20,7 +20,7 @@ namespace DFT
 		{
 			static const double mul = 4. / (6. * (pow(2., 1. / 3.) - 1.));
 
-			return mul * (pow(1. + zeta, 1. / 3.) + pow(1. - zeta, 1. / 3.)); // eq 5 from NIST
+			return mul * (pow(1. + zeta, 1. / 3.) - pow(1. - zeta, 1. / 3.)); // eq 5 from NIST
 		}
 	};
 
