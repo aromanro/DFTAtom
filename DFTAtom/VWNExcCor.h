@@ -38,10 +38,12 @@ namespace DFT {
 		static constexpr double calpha = 13.0045;
 		static constexpr double Y0alpha = y0alpha * y0alpha + balpha * y0alpha + calpha;
 
-		inline static double F(double y /*sqrt(rs)*/, double dify /*y - y0*/, double A, double y0, double b, double c, double Y0, double Y)
+
+		inline static double F(double y /*sqrt(rs)*/, double dify /*y - y0*/, double A, double y0, double b, double c, double Y0, double Y /* y^2 + by + c */)
 		{
 			const double Q = sqrt(4 * c - b * b);
-			const double atanQ = atan(Q / (2. * y + b));
+			const double twoyb = 2. * y + b;
+			const double atanQ = atan(Q / twoyb);
 
 			return A * (log(y * y / Y) + 2. * b / Q * atanQ - b * y0 / Y0 * (log(dify * dify / Y) + 2. * (b + 2. * y0) / Q * atanQ)); // B.5
 		}
@@ -147,20 +149,16 @@ namespace DFT {
 
 				const double y = sqrt(rs);
 
-				const double YP = y * y + bP * y + cP;
+				const double YP = y * (y + bP) + cP;
 				const double difyP = y - y0P;
-
-
 				const double ecp = F(y, difyP, AP, y0P, bP, cP, Y0P, YP); // B.5
 
-				const double YF = y * y + bF * y + cF;
+				const double YF = y * (y + bF) + cF;
 				const double difyF = y - y0F;
-
 				const double ecf = F(y, difyF, AF, y0F, bF, cF, Y0F, YF); // B.5
 
-				const double YA = y * y + balpha * y + calpha;
+				const double YA = y * (y + balpha) + calpha;
 				const double difyA = y - y0alpha;
-
 				const double eca = F(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA); // B.5
 
 				const double ecpd = ecDif(y, difyP, AP, y0P, bP, cP, YP);
@@ -168,28 +166,31 @@ namespace DFT {
 				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
 
 				const double deltaec = ecf - ecp;
+				const double beta = fdd * deltaec / eca - 1.; // eq. 9 NIST
+				const double interp = fval / fdd * (1 + beta * pow(zeta, 4.)); // eq 8 NIST without alphac
+
 				const double deltaecd = ecfd - ecpd;
-				const double beta = fdd * deltaec / eca - 1.;
-				const double betad = fdd * fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
-				const double interp = fval / fdd * (1 + beta * pow(zeta, 4.));
+				const double betad = fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
 				const double interpd = fval / fdd * pow(zeta, 4.) * betad;
 
 				res[i] = ep + (ef - ep) * fval // exchange term
 					// paramagnetic part:
 					+ ecp
-					// the rest of it:
-					+ eca * interp;
+					// derivative part of paramagnetic
+					+ 1. / 3. * ecpd;
 
 				// TODO: something is wrong here, fix it!
 
 				// now the derivative
-				const double deriv = 1. / 3. * (ecpd // paramagnetic part
-					+ ecad * interp);// +eca * interpd);
+				const double deriv = 1. / 3. * (ecad * interp + eca * interpd);
 
-				va[i] = res[i] - (1. + zeta) * deriv;
-				vb[i] = res[i] - (1. - zeta) * deriv;
+				const double ecai = eca * interp; // eq. 8 NIST
+				const double ecaimd = ecai - deriv;
 
-				res[i] -= deriv;
+				va[i] = res[i] + (1. - zeta) * ecaimd;
+				vb[i] = res[i] + (1. + zeta) * ecaimd;
+
+				res[i] += ecaimd;
 			}
 
 			return res;
@@ -231,18 +232,18 @@ namespace DFT {
 
 				const double y = sqrt(rs);
 
-				const double YP = y * y + bP * y + cP;
+				const double YP = y * (y + bP) + cP;
 				const double difyP = y - y0P;
 
 
 				const double ecp = F(y, difyP, AP, y0P, bP, cP, Y0P, YP); // B.5
 
-				const double YF = y * y + bF * y + cF;
+				const double YF = y * (y + bF) + cF;
 				const double difyF = y - y0F;
 
 				const double ecf = F(y, difyF, AF, y0F, bF, cF, Y0F, YF); // B.5
 
-				const double YA = y * y + balpha * y + calpha;
+				const double YA = y * (y + balpha) + calpha;
 				const double difyA = y - y0alpha;
 
 				const double eca = F(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA); // B.5
@@ -252,16 +253,17 @@ namespace DFT {
 				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
 
 				const double deltaec = ecf - ecp;
-				const double deltaecd = ecfd - ecpd;
 				const double beta = fdd * deltaec / eca - 1.;
-				const double betad = fdd * fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
 				const double interp = fval / fdd * (1 + beta * pow(zeta, 4.));
+
+				const double deltaecd = ecfd - ecpd;
+				const double betad = fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
 				const double interpd = fval / fdd * pow(zeta, 4.) * betad;
 
 				// TODO: something is wrong here, fix it!
 
 				const double deriv = 1. / 3. * (ecpd // paramagnetic part
-					+ ecad * interp);// +eca * interpd);
+					+ ecad * interp + eca * interpd);
 
 				res[i] = ep + (ef - ep) * fval // exchange term
 					// correlation term:
