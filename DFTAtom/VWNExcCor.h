@@ -143,6 +143,8 @@ namespace DFT {
 				const double ef = X2 * ep;
 
 				const double zeta = (roa - rob) / n;
+				const double zeta3 = zeta * zeta * zeta;
+				const double zeta4 = zeta3 * zeta;
 
 				const double fval = f(zeta);
 				const double dfval = df(zeta);
@@ -167,30 +169,30 @@ namespace DFT {
 
 				const double deltaec = ecf - ecp;
 				const double beta = fdd * deltaec / eca - 1.; // eq. 9 NIST
-				const double interp = fval / fdd * (1 + beta * pow(zeta, 4.)); // eq 8 NIST without alphac
+
+
+				const double opbz4 = 1 + beta * zeta4;
+				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
+				const double ecai = eca * interp; // eq. 8 NIST
 
 				const double deltaecd = ecfd - ecpd;
 				const double betad = fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
-				const double interpd = fval / fdd * pow(zeta, 4.) * betad;
+				const double interpd = fval / fdd * zeta4 * betad;
+
+				const double deriv = 1. / 3. * (ecpd + ecad * interp + eca * interpd);
 
 				res[i] = ep + (ef - ep) * fval // exchange term
 					// paramagnetic part:
 					+ ecp
-					// derivative part of paramagnetic
-					+ 1. / 3. * ecpd;
+					// the polarization part
+					+ ecai
+					// derivative
+					- deriv;
 
-				// TODO: something is wrong here, fix it!
+				const double dterm = eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
 
-				// now the derivative
-				const double deriv = 1. / 3. * (ecad * interp + eca * interpd);
-
-				const double ecai = eca * interp; // eq. 8 NIST
-				const double ecaimd = ecai - deriv;
-
-				va[i] = res[i] + (1. - zeta) * ecaimd;
-				vb[i] = res[i] + (1. + zeta) * ecaimd;
-
-				res[i] += ecaimd;
+				va[i] = res[i] + (1. - zeta) * dterm;
+				vb[i] = res[i] - (1. + zeta) * dterm;
 			}
 
 			return res;
@@ -226,6 +228,8 @@ namespace DFT {
 				const double ef = X2 * ep;
 
 				const double zeta = (roa - rob) / n;
+				const double zeta3 = zeta * zeta * zeta;
+				const double zeta4 = zeta3 * zeta;
 
 				const double fval = f(zeta);
 				const double dfval = df(zeta);
@@ -253,14 +257,15 @@ namespace DFT {
 				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
 
 				const double deltaec = ecf - ecp;
-				const double beta = fdd * deltaec / eca - 1.;
-				const double interp = fval / fdd * (1 + beta * pow(zeta, 4.));
+				const double beta = fdd * deltaec / eca - 1.; // eq. 9 NIST
+
+				const double opbz4 = 1 + beta * zeta4;
+				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
+				const double ecai = eca * interp; // eq. 8 NIST
 
 				const double deltaecd = ecfd - ecpd;
 				const double betad = fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
-				const double interpd = fval / fdd * pow(zeta, 4.) * betad;
-
-				// TODO: something is wrong here, fix it!
+				const double interpd = fval / fdd * zeta4 * betad;
 
 				const double deriv = 1. / 3. * (ecpd // paramagnetic part
 					+ ecad * interp + eca * interpd);
