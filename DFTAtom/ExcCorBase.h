@@ -18,7 +18,7 @@ namespace DFT
 
 		inline static double df(double zeta)
 		{
-			static const double mul = 4. / (6. * (pow(2., 1. / 3.) - 1.));
+			static const double mul = 2. / (3. * (pow(2., 1. / 3.) - 1.));
 
 			return mul * (pow(1. + zeta, 1. / 3.) - pow(1. - zeta, 1. / 3.)); // eq 5 from NIST
 		}

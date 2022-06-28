@@ -17,7 +17,7 @@ namespace DFT {
 	protected:
 		static constexpr double fourM_PI = 4. * M_PI;
 
-		// values for 'paramagnetic' variant (used for LDA)
+		// values for 'paramagnetic' variant (used for LDA and LSDA)
 		static constexpr double AP = 0.0310907; // actually 0.5 * A
 		static constexpr double y0P = -0.10498;
 		static constexpr double bP = 3.72744;
@@ -48,9 +48,9 @@ namespace DFT {
 			return A * (log(y * y / Y) + 2. * b / Q * atanQ - b * y0 / Y0 * (log(dify * dify / Y) + 2. * (b + 2. * y0) / Q * atanQ)); // B.5
 		}
 
-		inline static double ecDif(double y, double dify, double A, double y0, double b, double c, double Y)
+		inline static double ecDif(double y, double dify, double A, double y0, double b, double c, double Y0,  double Y)
 		{
-			return A * (c * dify - b * y0 * y) / (dify * Y);
+			return A * (c * dify - b * y0 * y) / (dify * Y); // B.6
 		}
 
 	public:
@@ -77,7 +77,7 @@ namespace DFT {
 				res[i] = -X1 / rs // exchange term
 					//the following make the Vc as in B.1
 					+ F(y, dify, AP, y0P, bP, cP, Y0P, Y) // B.5
-					- 1. / 3. * ecDif(y, dify, AP, y0P, bP, cP, Y); // B.6
+					- 1. / 3. * ecDif(y, dify, AP, y0P, bP, cP, Y0P, Y); // B.6
 			}
 
 			return res;
@@ -106,7 +106,7 @@ namespace DFT {
 				const double dify = y - y0P;
 
 				res[i] = X1 / rs // exchange term
-					+ 1./ 3. * ecDif(y, dify, AP, y0P, bP, cP, Y); // B.6
+					+ 1./ 3. * ecDif(y, dify, AP, y0P, bP, cP, Y0P, Y); // B.6
 			}
 
 			return res;
@@ -117,9 +117,9 @@ namespace DFT {
 			int sz = static_cast<int>(na.size());
 			if (sz != nb.size()) return {};
 
-			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
+			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient - see eq 4 NIST, but it's arranged
 			static const double X2 = pow(2., 1. / 3.);
-			static const double fdd = 1. / (9. * (pow(2., 1. / 3.) - 1.));
+			static const double fdd = 4. / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
 
@@ -134,15 +134,17 @@ namespace DFT {
 				if (n < 1E-18)
 				{
 					res[i] = 0;
+					va[0] = 0;
+					vb[0] = 0;
 					continue;
 				}
 
-				const double rs = pow(3. / (fourM_PI * n), 1. / 3.);
+				const double rs = pow(3. / (fourM_PI * n), 1. / 3.); // eq 2 NIST
 
-				const double ep = -X1 / rs;
-				const double ef = X2 * ep;
+				const double exp = -X1 / rs; // see eq 4 NIST
+				const double exf = X2 * exp; // see eq 4 NIST but ef = 2^1/3 * ep
 
-				const double zeta = (roa - rob) / n;
+				const double zeta = (roa - rob) / n; // eq 3 NIST				
 				const double zeta3 = zeta * zeta * zeta;
 				const double zeta4 = zeta3 * zeta;
 
@@ -151,21 +153,25 @@ namespace DFT {
 
 				const double y = sqrt(rs);
 
+				// paramagnetic values
 				const double YP = y * (y + bP) + cP;
 				const double difyP = y - y0P;
 				const double ecp = F(y, difyP, AP, y0P, bP, cP, Y0P, YP); // B.5
 
+				// ferromagnetic values
 				const double YF = y * (y + bF) + cF;
 				const double difyF = y - y0F;
 				const double ecf = F(y, difyF, AF, y0F, bF, cF, Y0F, YF); // B.5
 
+				// spin stiffness values
 				const double YA = y * (y + balpha) + calpha;
 				const double difyA = y - y0alpha;
 				const double eca = F(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA); // B.5
 
-				const double ecpd = ecDif(y, difyP, AP, y0P, bP, cP, YP);
-				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, YF);
-				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
+				// derivatives for the above
+				const double ecpd = ecDif(y, difyP, AP, y0P, bP, cP, Y0P, YP);
+				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, Y0F, YF);
+				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA);
 
 				const double deltaec = ecf - ecp;
 				const double beta = fdd * deltaec / eca - 1.; // eq. 9 NIST
@@ -176,12 +182,12 @@ namespace DFT {
 				const double ecai = eca * interp; // eq. 8 NIST
 
 				const double deltaecd = ecfd - ecpd;
-				const double betad = fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
+				const double betad = fdd * (deltaecd / eca - ecad * deltaec / (eca * eca));
 				const double interpd = fval / fdd * zeta4 * betad;
 
 				const double deriv = 1. / 3. * (ecpd + ecad * interp + eca * interpd);
 
-				res[i] = ep + (ef - ep) * fval // exchange term
+				res[i] = exp + (exf - exp) * fval // exchange term - eq 1 NIST
 					// paramagnetic part:
 					+ ecp
 					// the polarization part
@@ -206,7 +212,7 @@ namespace DFT {
 
 			static const double	X1 = 0.25 * pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 			static const double X2 = pow(2., 1. / 3.);
-			static const double fdd = 1. / (9. * (pow(2., 1. / 3.) - 1.));
+			static const double fdd = 4. / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
 
@@ -224,8 +230,8 @@ namespace DFT {
 
 				const double rs = pow(3. / (fourM_PI * n), 1. / 3.);
 
-				const double ep = X1 / rs;
-				const double ef = X2 * ep;
+				const double exp = X1 / rs;
+				const double exf = X2 * exp;
 
 				const double zeta = (roa - rob) / n;
 				const double zeta3 = zeta * zeta * zeta;
@@ -252,9 +258,9 @@ namespace DFT {
 
 				const double eca = F(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA); // B.5
 
-				const double ecpd = ecDif(y, difyP, AP, y0P, bP, cP, YP);
-				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, YF);
-				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, YA);
+				const double ecpd = ecDif(y, difyP, AP, y0P, bP, cP, Y0P, YP);
+				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, Y0F, YF);
+				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA);
 
 				const double deltaec = ecf - ecp;
 				const double beta = fdd * deltaec / eca - 1.; // eq. 9 NIST
@@ -270,7 +276,7 @@ namespace DFT {
 				const double deriv = 1. / 3. * (ecpd // paramagnetic part
 					+ ecad * interp + eca * interpd);
 
-				res[i] = ep + (ef - ep) * fval // exchange term
+				res[i] = exp + (exf - exp) * fval // exchange term
 					// correlation term:
 					+ deriv;
 			}

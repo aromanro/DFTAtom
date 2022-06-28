@@ -600,10 +600,9 @@ namespace DFT {
 	}
 
 
-	// TODO: Right now is just a copy of LDA, it's going to be modified for LSDA
 	// basically one needs to go with two densities instead of one
 	// the Poisson solver will solve for the sum of the two,
-	// but Schrodinger will be solved for different effective potentials
+	// but Schrodinger is solved for different effective potentials
 
 	void DFTAtom::CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
@@ -661,6 +660,7 @@ namespace DFT {
 		const double constDensBeta = numBetaElectrons / volume;
 		densityAlpha[0] = 0;
 		densityBeta[0] = 0;
+		density[0] = 0;
 		for (int i = 1; i < NumGridNodes; ++i)
 		{
 			densityAlpha[i] = constDensAlpha;
@@ -675,7 +675,6 @@ namespace DFT {
 		std::vector<double> va;
 		std::vector<double> vb;
 
-		//std::vector<double> Vexc = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::Vexc(density);
 		std::vector<double> Vexc = VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
 
 
@@ -763,7 +762,6 @@ namespace DFT {
 			//std::cout << "Total of density: " << totalD << std::endl;
 
 			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
-			//Vexc = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::Vexc(density);
 			Vexc = DFT::VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
 
 			// Nuclear energy:
@@ -772,7 +770,6 @@ namespace DFT {
 			// Exchange-correlation energy:
 			std::vector<double> exccor(NumGridNodes);
 
-			//std::vector<double> eexcDeriv = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::eexcDif(density);
 			std::vector<double> eexcDeriv = DFT::VWNExchCor::eexcDif(densityAlpha, densityBeta);
 
 			// Hartree energy:
@@ -795,9 +792,10 @@ namespace DFT {
 				const double position = Rp * (expD - 1.);
 
 				const double cnst = Rp * deltaGrid * expD;
+				const double U = (-Z + UHartree[i]) / position;
 
-				potentialAlpha.m_potentialValues[i] = (-Z + UHartree[i]) / position + va[i];
-				potentialBeta.m_potentialValues[i] = (-Z + UHartree[i]) / position + vb[i];
+				potentialAlpha.m_potentialValues[i] = U + va[i];
+				potentialBeta.m_potentialValues[i] = U + vb[i];
 
 				const double positioncnst = position * cnst;
 				const double positiondensity = positioncnst * density[i];
@@ -844,8 +842,15 @@ namespace DFT {
 		}
 
 		// sort levels by energy, just in case the energy values for levels do not come up as in the expected order (there are exceptions to the aufbau principle, too)
+		std::sort(levelsAlpha.begin(), levelsAlpha.end(), [](const auto& val1, const auto& val2) -> bool { return val1.E < val2.E; });
+		std::sort(levelsBeta.begin(), levelsBeta.end(), [](const auto& val1, const auto& val2) -> bool { return val1.E < val2.E; });
 
+		std::cout << "Alpha: ";
 		for (const auto& level : levelsAlpha)
+			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
+
+		std::cout << "\nBeta: ";
+		for (const auto& level : levelsBeta)
 			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
 	}
 
