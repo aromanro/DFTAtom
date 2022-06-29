@@ -134,8 +134,8 @@ namespace DFT {
 				if (n < 1E-18)
 				{
 					res[i] = 0;
-					va[0] = 0;
-					vb[0] = 0;
+					va[i] = 0;
+					vb[i] = 0;
 					continue;
 				}
 
