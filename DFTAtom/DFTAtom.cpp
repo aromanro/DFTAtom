@@ -683,7 +683,7 @@ namespace DFT {
 
 		bool lastTimeConverged = false;
 
-		for (int sp = 0; sp < 100; ++sp)
+		for (int sp = 0; sp < 150; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
 
@@ -708,6 +708,30 @@ namespace DFT {
 				newDensity[i] /= fourM_PI * position * position;
 				densityAlpha[i] = alpha * densityAlpha[i] + oneMinusAlpha * newDensity[i];
 			}
+
+			// ******************************************************************************************************************
+			// recompute things before computing for beta?
+
+			for (int i = 1; i < NumGridNodes; ++i)
+				density[i] = densityAlpha[i] + densityBeta[i];
+
+			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
+			Vexc = DFT::VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
+
+			potentialAlpha.m_potentialValues[0] = potentialBeta.m_potentialValues[0] = 0;
+			for (int i = 1; i < NumGridNodes; ++i)
+			{
+				const double expD = exp(deltaGrid * i);
+				const double position = Rp * (expD - 1.);
+
+				const double cnst = Rp * deltaGrid * expD;
+				const double U = (-Z + UHartree[i]) / position;
+
+				//potentialAlpha.m_potentialValues[i] = U + va[i];
+				potentialBeta.m_potentialValues[i] = U + vb[i];
+			}
+
+			// ******************************************************************************************************************
 
 			for (int i = 0; i < NumGridNodes; ++i)
 				newDensity[i] = 0;
@@ -796,7 +820,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < 1E-11 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 				break;
