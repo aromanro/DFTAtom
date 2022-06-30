@@ -189,7 +189,7 @@ namespace DFT {
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
 
-			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
+			std::cout << "Etotal = " <<  std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
 			if (abs((Eold - Etotal) / Etotal) < 1E-9 && reallyConverged && lastTimeConverged)
 			{
@@ -275,7 +275,7 @@ namespace DFT {
 				else
 					std::cout << "beta ";
 			}
-			std::cout << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
+			std::cout << level.m_N + 1 << orb[level.m_L] << ": " << std::fixed << std::setprecision(6) << level.E << " Num nodes: " << NumNodes << std::endl;
 
 			for (int i = 0; i < result.size() - 1; ++i)
 				newDensity[i] += level.m_nrElectrons * result[i] * result[i];
@@ -465,7 +465,7 @@ namespace DFT {
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
 
-			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
+			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
 			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged && lastTimeConverged)
 			{
@@ -549,7 +549,7 @@ namespace DFT {
 				else
 					std::cout << "beta ";
 			}
-			std::cout << level.m_N + 1 << orb[level.m_L] << ": " << std::setprecision(12) << level.E << " Num nodes: " << NumNodes << std::endl;
+			std::cout << level.m_N + 1 << orb[level.m_L] << ": " << std::fixed << std::setprecision(6) << level.E << " Num nodes: " << NumNodes << std::endl;
 
 			for (int i = 0; i < result.size() - 1; ++i)
 				newDensity[i] += level.m_nrElectrons * result[i] * result[i];
@@ -607,14 +607,10 @@ namespace DFT {
 	void DFTAtom::CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const double energyErr = 1E-12;
-
 		const double oneMinusAlpha = 1. - alpha;
-
 		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
-
 		const int NumSteps = NumGridNodes - 1;
 		const double Rp = MaxR / (exp(NumSteps * deltaGrid) - 1.);
-
 
 		std::vector<double> density(NumGridNodes);
 		std::vector<double> densityAlpha(NumGridNodes);
@@ -624,7 +620,6 @@ namespace DFT {
 		potentialAlpha.m_potentialValues.resize(NumGridNodes);
 		Potential potentialBeta;
 		potentialBeta.m_potentialValues.resize(NumGridNodes);
-
 
 		std::vector<Subshell> levelsAlpha = AufbauPrinciple::GetSubshells(Z);
 		std::sort(levelsAlpha.begin(), levelsAlpha.end());
@@ -658,9 +653,7 @@ namespace DFT {
 
 		const double constDensAlpha = numAlphaElectrons / volume;
 		const double constDensBeta = numBetaElectrons / volume;
-		densityAlpha[0] = 0;
-		densityBeta[0] = 0;
-		density[0] = 0;
+		densityAlpha[0] = densityBeta[0] = density[0] = 0;
 		for (int i = 1; i < NumGridNodes; ++i)
 		{
 			densityAlpha[i] = constDensAlpha;
@@ -677,7 +670,6 @@ namespace DFT {
 
 		std::vector<double> Vexc = VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
 
-
 		potentialAlpha.m_potentialValues[0] = 0;
 		potentialBeta.m_potentialValues[0] = 0;
 		for (int i = 1; i < NumGridNodes; ++i)
@@ -691,23 +683,20 @@ namespace DFT {
 
 		bool lastTimeConverged = false;
 
-
-
 		for (int sp = 0; sp < 100; ++sp)
 		{
 			std::cout << "Step: " << sp << std::endl;
 
 			double Eelectronic = 0;
 
-
 			std::vector<double> newDensity(NumGridNodes, 0);
 
 			Numerov<NumerovFunctionNonUniformGrid> numerovAlpha(potentialAlpha, deltaGrid, MaxR, NumGridNodes);
 
-			bool reallyConverged = true;
+			bool reallyConverged1 = true;
 			double BottomEnergy = -double(Z) * Z - 1.;
 
-			LoopOverLevels(numerovAlpha, levelsAlpha, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged, energyErr, false, true);
+			LoopOverLevels(numerovAlpha, levelsAlpha, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged1, energyErr, false, true);
 			for (int i = 1; i < NumGridNodes; ++i)
 			{
 				const double position = Rp * (exp(i * deltaGrid) - 1.);
@@ -725,10 +714,10 @@ namespace DFT {
 
 			Numerov<NumerovFunctionNonUniformGrid> numerovBeta(potentialBeta, deltaGrid, MaxR, NumGridNodes);
 
-			reallyConverged = true;
+			bool reallyConverged2 = true;
 			BottomEnergy = -double(Z) * Z - 1.;
 
-			LoopOverLevels(numerovBeta, levelsBeta, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged, energyErr, false, false);
+			LoopOverLevels(numerovBeta, levelsBeta, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged2, energyErr, false, false);
 			for (int i = 1; i < NumGridNodes; ++i)
 			{
 				const double position = Rp * (exp(i * deltaGrid) - 1.);
@@ -741,25 +730,8 @@ namespace DFT {
 				densityBeta[i] = alpha * densityBeta[i] + oneMinusAlpha * newDensity[i];
 			}
 
-			// The commented code verifies if summing up density gets back Z 
-			//double totalD = 0;
-
 			for (int i = 1; i < NumGridNodes; ++i)
-			{
 				density[i] = densityAlpha[i] + densityBeta[i];
-
-				/*
-				const double expD = exp(deltaGrid * i);
-				const double position = Rp * (expD - 1.);
-
-				const double cnst = Rp * deltaGrid * expD;
-				const double position2cnst = fourM_PI * position * position * cnst;
-
-				totalD += density[i] * position2cnst;
-				*/
-			}
-
-			//std::cout << "Total of density: " << totalD << std::endl;
 
 			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
 			Vexc = DFT::VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
@@ -778,13 +750,8 @@ namespace DFT {
 			// potential energy:
 			std::vector<double> potentiale(NumGridNodes);
 
-			potentialAlpha.m_potentialValues[0] = 0;
-			potentialBeta.m_potentialValues[0] = 0;
-			nuclear[0] = 0;
-			exccor[0] = 0;
-			eexcDeriv[0] = 0;
-			hartree[0] = 0;
-			potentiale[0] = 0;
+			potentialAlpha.m_potentialValues[0] = potentialBeta.m_potentialValues[0] = 0;
+			nuclear[0] = exccor[0] = eexcDeriv[0] = hartree[0] = potentiale[0] = 0;
 
 			for (int i = 1; i < NumGridNodes; ++i)
 			{
@@ -827,16 +794,15 @@ namespace DFT {
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
 
-			std::cout << "Etotal = " << std::setprecision(12) << Etotal << " Ekin = " << std::setprecision(12) << Ekinetic << " Ecoul = " << std::setprecision(12) << -Ehartree << " Eenuc = " << std::setprecision(12) << Enuclear << " Exc = " << std::setprecision(12) << Exc << std::endl;
+			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
-
 				break;
 			}
 			Eold = Etotal;
-			lastTimeConverged = reallyConverged;
+			lastTimeConverged = reallyConverged1 && reallyConverged2;
 
 			std::cout << "********************************************************************************" << std::endl;
 		}
@@ -853,6 +819,4 @@ namespace DFT {
 		for (const auto& level : levelsBeta)
 			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
 	}
-
-
 }

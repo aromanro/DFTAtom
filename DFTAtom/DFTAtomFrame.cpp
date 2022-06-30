@@ -12,7 +12,6 @@
 
 #include "DFTAtom.h"
 
-
 #define ID_TIMER   101
 #define ID_EXECUTE 102
 
@@ -190,7 +189,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 		
 		//DFT::DFTAtom::CalculateUniformLDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR);
 		//DFT::DFTAtom::CalculateNonUniformLSDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR, options.deltaGrid);
-
+		
 		DFT::DFTAtom::CalculateNonUniformLDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR, options.deltaGrid);
 
 		inExecution = false;

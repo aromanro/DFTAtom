@@ -3,6 +3,8 @@
 #include <cassert>
 #include <vector>
 
+#include <sstream>
+
 #include "ExcCorBase.h"
 
 namespace DFT {
@@ -37,7 +39,6 @@ namespace DFT {
 		static constexpr double balpha = 1.13107;
 		static constexpr double calpha = 13.0045;
 		static constexpr double Y0alpha = y0alpha * y0alpha + balpha * y0alpha + calpha;
-
 
 		inline static double F(double y /*sqrt(rs)*/, double dify /*y - y0*/, double A, double y0, double b, double c, double Y0, double Y /* y^2 + by + c */)
 		{
@@ -82,8 +83,6 @@ namespace DFT {
 
 			return res;
 		}
-
-
 
 		static std::vector<double> eexcDif(const std::vector<double>& n)
 		{
@@ -133,9 +132,7 @@ namespace DFT {
 				const double n = roa + rob;
 				if (n < 1E-18)
 				{
-					res[i] = 0;
-					va[i] = 0;
-					vb[i] = 0;
+					res[i] = va[i] = vb[i] = 0;
 					continue;
 				}
 
@@ -143,6 +140,7 @@ namespace DFT {
 
 				const double exp = -X1 / rs; // see eq 4 NIST
 				const double exf = X2 * exp; // see eq 4 NIST but ef = 2^1/3 * ep
+				const double exdif = exf - exp;
 
 				const double zeta = (roa - rob) / n; // eq 3 NIST				
 				const double zeta3 = zeta * zeta * zeta;
@@ -173,29 +171,35 @@ namespace DFT {
 				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, Y0F, YF);
 				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA);
 
-				const double deltaec = ecf - ecp;
-				const double beta = fdd * deltaec / eca - 1.; // eq. 9 NIST
-
-
+				const double deltaecfp = ecf - ecp; // eq 10 NIST
+				const double beta = fdd * deltaecfp / eca - 1.; // eq. 9 NIST
 				const double opbz4 = 1 + beta * zeta4;
 				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
-				const double ecai = eca * interp; // eq. 8 NIST
+				const double deltaec = eca * interp; // eq. 8 NIST
 
-				const double deltaecd = ecfd - ecpd;
-				const double betad = fdd * (deltaecd / eca - ecad * deltaec / (eca * eca));
+				const double betad = fdd * ((ecfd - ecpd) / eca - ecad * deltaecfp / (eca * eca));
 				const double interpd = fval / fdd * zeta4 * betad;
 
-				const double deriv = 1. / 3. * (ecpd + ecad * interp + eca * interpd);
+				// derivative in respect to rs
+				const double deriv = 1. / 3. * (ecpd // paramagnetic part
+					+ ecad * interp + eca * interpd);
 
-				res[i] = exp + (exf - exp) * fval // exchange term - eq 1 NIST
+				res[i] = exp + exdif * fval // exchange term - eq 1 NIST
+					// the following two terms sum make the eq 7 from NIST
 					// paramagnetic part:
 					+ ecp
 					// the polarization part
-					+ ecai
+					+ deltaec
+
 					// derivative
 					- deriv;
 
-				const double dterm = eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
+				// derivative with respect to zeta
+				const double dterm = 
+					// exchange part
+					exdif * dfval
+					// correlation part
+					+ eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
 
 				va[i] = res[i] + (1. - zeta) * dterm;
 				vb[i] = res[i] - (1. + zeta) * dterm;
@@ -204,7 +208,6 @@ namespace DFT {
 			return res;
 		}
 
-
 		static std::vector<double> eexcDif(const std::vector<double>& na, const std::vector<double>& nb)
 		{
 			int sz = static_cast<int>(na.size());
@@ -212,7 +215,7 @@ namespace DFT {
 
 			static const double	X1 = 0.25 * pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 			static const double X2 = pow(2., 1. / 3.);
-			static const double fdd = 4. / (9. * (pow(2., 1. / 3.) - 1.));
+			static const double fdd = 4 / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
 
@@ -262,15 +265,13 @@ namespace DFT {
 				const double ecfd = ecDif(y, difyF, AF, y0F, bF, cF, Y0F, YF);
 				const double ecad = ecDif(y, difyA, Aalpha, y0alpha, balpha, calpha, Y0alpha, YA);
 
-				const double deltaec = ecf - ecp;
-				const double beta = fdd * deltaec / eca - 1.; // eq. 9 NIST
-
+				const double deltaecfp = ecf - ecp; // eq 10 NIST
+				const double beta = fdd * deltaecfp / eca - 1.; // eq. 9 NIST
 				const double opbz4 = 1 + beta * zeta4;
 				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
-				const double ecai = eca * interp; // eq. 8 NIST
+				const double deltaec = eca * interp; // eq. 8 NIST
 
-				const double deltaecd = ecfd - ecpd;
-				const double betad = fdd * (deltaecd * eca - ecad * deltaec) / (eca * eca);
+				const double betad = fdd * ((ecfd - ecpd) / eca - ecad * deltaecfp / (eca * eca));
 				const double interpd = fval / fdd * zeta4 * betad;
 
 				const double deriv = 1. / 3. * (ecpd // paramagnetic part
