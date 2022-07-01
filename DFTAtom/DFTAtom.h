@@ -21,11 +21,14 @@ namespace DFT {
 		static void LoopOverLevels(Numerov<NumerovFunctionRegularGrid>& numerov, std::vector<Subshell>& levels, std::vector<double>& newDensity, double& Eelectronic, double& BottomEnergy, int NumSteps, double MaxR, double h, bool& reallyConverged, double energyErr, bool lda = true, bool isAlpha = true);
 		static void LocateInterval(Numerov<NumerovFunctionRegularGrid>& numerov, double& TopEnergy, double& BottomEnergy, double MaxR, int L, int NumSteps, int NumNodes, double energyErr);
 
+		static void CalculateNonUniformDensity(std::vector<double>& density, double alpha, double oneMinusAlpha, double deltaGrid, double Rp, int NumGridNodes, Numerov<NumerovFunctionNonUniformGrid>& numerov, std::vector<Subshell>& levels, std::vector<double>& newDensity, double& Eelectronic, double& BottomEnergy, int NumSteps, double MaxR, double h, bool& reallyConverged, double energyErr, bool lda = true, bool isAlpha = true);
 		static void LoopOverLevels(Numerov<NumerovFunctionNonUniformGrid>& numerov, std::vector<Subshell>& levels, std::vector<double>& newDensity, double& Eelectronic, double& BottomEnergy, int NumSteps, double Rp, double deltaGrid, bool& reallyConverged, double energyErr, bool lda = true, bool isAlpha = true);
 		static void LocateInterval(Numerov<NumerovFunctionNonUniformGrid>& numerov, double& TopEnergy, double& BottomEnergy, int L, int NumSteps, int NumNodes, double energyErr);
 
 		static void NormalizeNonUniform(std::vector<double>& Psi, double Rp, double deltaGrid);
 		static void NormalizeUniform(std::vector<double>& Psi, double h);
+
+		static void InitializeLevels(int Z, int& numAlphaElectrons, int& numBetaElectrons, std::vector<Subshell>& levelsAlpha, std::vector<Subshell>& levelsBeta);
 	};
 
 }

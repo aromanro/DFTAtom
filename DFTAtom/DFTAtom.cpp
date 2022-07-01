@@ -326,6 +326,24 @@ namespace DFT {
 	}
 
 
+	void DFTAtom::CalculateNonUniformDensity(std::vector<double>& density, double alpha, double oneMinusAlpha, double deltaGrid, double Rp, int NumGridNodes, Numerov<NumerovFunctionNonUniformGrid>& numerov, std::vector<Subshell>& levels, std::vector<double>& newDensity, double& Eelectronic, double& BottomEnergy, int NumSteps, double MaxR, double h, bool& reallyConverged, double energyErr, bool lda, bool isAlpha)
+	{
+		LoopOverLevels(numerov, levels, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged, energyErr);
+
+		for (int i = 1; i < NumGridNodes; ++i)
+		{
+			const double position = Rp * (exp(i * deltaGrid) - 1.);
+
+			// 4 * M_PI appears because we're in spherical coordinates
+			// the actual integration for the 'true' wavefunction gives a 4 M_PI
+			// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
+
+			newDensity[i] /= fourM_PI * position * position;
+			density[i] = alpha * density[i] + oneMinusAlpha * newDensity[i];
+		}
+	}
+
+
 	void DFTAtom::CalculateNonUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const double energyErr = 1E-12; 
@@ -373,8 +391,6 @@ namespace DFT {
 		}
 
 		bool lastTimeConverged = false;
-
-
 		
 		for (int sp = 0; sp < 100; ++sp)
 		{
@@ -389,20 +405,7 @@ namespace DFT {
 			bool reallyConverged = true;
 			double BottomEnergy = -double(Z) * Z - 1.;
 
-			LoopOverLevels(numerov, levels, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged, energyErr);
-
-			for (int i = 1; i < NumGridNodes; ++i)
-			{
-				const double position = Rp * (exp(i * deltaGrid) - 1.);
-
-				// 4 * M_PI appears because we're in spherical coordinates
-				// the actual integration for the 'true' wavefunction gives a 4 M_PI
-				// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
-
-				newDensity[i] /= fourM_PI * position * position;
-				density[i] = alpha * density[i] + oneMinusAlpha * newDensity[i];
-			}
-
+			CalculateNonUniformDensity(density, alpha, oneMinusAlpha, deltaGrid, Rp, NumGridNodes, numerov, levels, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged, energyErr);
 
 			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
 			//Vexc = DFT::ChachiyoExchCor<DFT::ChachiyoExchCorImprovedParam>::Vexc(density);
@@ -600,33 +603,14 @@ namespace DFT {
 	}
 
 
-	// basically one needs to go with two densities instead of one
-	// the Poisson solver will solve for the sum of the two,
-	// but Schrodinger is solved for different effective potentials
-
-	void DFTAtom::CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
+	void DFTAtom::InitializeLevels(int Z, int& numAlphaElectrons, int& numBetaElectrons, std::vector<Subshell>& levelsAlpha, std::vector<Subshell>& levelsBeta)
 	{
-		static const double energyErr = 1E-12;
-		const double oneMinusAlpha = 1. - alpha;
-		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
-		const int NumSteps = NumGridNodes - 1;
-		const double Rp = MaxR / (exp(NumSteps * deltaGrid) - 1.);
-
-		std::vector<double> density(NumGridNodes);
-		std::vector<double> densityAlpha(NumGridNodes);
-		std::vector<double> densityBeta(NumGridNodes);
-
-		Potential potentialAlpha;
-		potentialAlpha.m_potentialValues.resize(NumGridNodes);
-		Potential potentialBeta;
-		potentialBeta.m_potentialValues.resize(NumGridNodes);
-
-		std::vector<Subshell> levelsAlpha = AufbauPrinciple::GetSubshells(Z);
+		levelsAlpha = AufbauPrinciple::GetSubshells(Z);
 		std::sort(levelsAlpha.begin(), levelsAlpha.end());
 
-		std::vector<Subshell> levelsBeta = levelsAlpha;
+		levelsBeta = levelsAlpha;
 
-		int numAlphaElectrons = 0;
+		numAlphaElectrons = 0;
 		for (int i = 0; i < levelsAlpha.size(); ++i)
 		{
 			const int maxe = DFT::AufbauPrinciple::getMaxNrAlphaElectrons(levelsAlpha[i].m_L);
@@ -645,7 +629,34 @@ namespace DFT {
 		}
 		levelsBeta.erase(std::remove_if(levelsBeta.begin(), levelsBeta.end(), [](Subshell& l) { return l.m_nrElectrons == 0; }), levelsBeta.end());
 
-		int numBetaElectrons = Z - numAlphaElectrons;
+		numBetaElectrons = Z - numAlphaElectrons;
+	}
+
+
+	// basically one needs to go with two densities instead of one
+	// the Poisson solver will solve for the sum of the two,
+	// but Schrodinger is solved for different effective potentials
+
+	void DFTAtom::CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
+	{
+		static const double energyErr = 1E-13;
+		const double oneMinusAlpha = 1. - alpha;
+		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
+		const int NumSteps = NumGridNodes - 1;
+		const double Rp = MaxR / (exp(NumSteps * deltaGrid) - 1.);
+
+		std::vector<double> density(NumGridNodes);
+		std::vector<double> densityAlpha(NumGridNodes);
+		std::vector<double> densityBeta(NumGridNodes);
+
+		Potential potentialAlpha;
+		potentialAlpha.m_potentialValues.resize(NumGridNodes);
+		Potential potentialBeta;
+		potentialBeta.m_potentialValues.resize(NumGridNodes);
+
+		int numAlphaElectrons, numBetaElectrons;
+		std::vector<Subshell> levelsAlpha, levelsBeta;
+		InitializeLevels(Z, numAlphaElectrons, numBetaElectrons, levelsAlpha, levelsBeta);
 
 		double Eold = 0;
 
@@ -696,18 +707,7 @@ namespace DFT {
 			bool reallyConverged1 = true;
 			double BottomEnergy = -double(Z) * Z - 1.;
 
-			LoopOverLevels(numerovAlpha, levelsAlpha, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged1, energyErr, false, true);
-			for (int i = 1; i < NumGridNodes; ++i)
-			{
-				const double position = Rp * (exp(i * deltaGrid) - 1.);
-
-				// 4 * M_PI appears because we're in spherical coordinates
-				// the actual integration for the 'true' wavefunction gives a 4 M_PI
-				// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
-
-				newDensity[i] /= fourM_PI * position * position;
-				densityAlpha[i] = alpha * densityAlpha[i] + oneMinusAlpha * newDensity[i];
-			}
+			CalculateNonUniformDensity(densityAlpha, alpha, oneMinusAlpha, deltaGrid, Rp, NumGridNodes, numerovAlpha, levelsAlpha, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged1, energyErr, false, true);
 
 			// ******************************************************************************************************************
 			// recompute things before computing for beta?
@@ -741,18 +741,7 @@ namespace DFT {
 			bool reallyConverged2 = true;
 			BottomEnergy = -double(Z) * Z - 1.;
 
-			LoopOverLevels(numerovBeta, levelsBeta, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged2, energyErr, false, false);
-			for (int i = 1; i < NumGridNodes; ++i)
-			{
-				const double position = Rp * (exp(i * deltaGrid) - 1.);
-
-				// 4 * M_PI appears because we're in spherical coordinates
-				// the actual integration for the 'true' wavefunction gives a 4 M_PI
-				// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
-
-				newDensity[i] /= fourM_PI * position * position;
-				densityBeta[i] = alpha * densityBeta[i] + oneMinusAlpha * newDensity[i];
-			}
+			CalculateNonUniformDensity(densityBeta, alpha, oneMinusAlpha, deltaGrid, Rp, NumGridNodes, numerovBeta, levelsBeta, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged2, energyErr, false, false);
 
 			for (int i = 1; i < NumGridNodes; ++i)
 				density[i] = densityAlpha[i] + densityBeta[i];
@@ -799,6 +788,7 @@ namespace DFT {
 				const double position2densityBeta = position2cnst * densityBeta[i];
 
 				exccor[i] = position2density * Vexc[i];
+				//exccor[i] = position2densityAlpha * va[i] + position2densityBeta * vb[i];
 				eexcDeriv[i] = position2density * eexcDeriv[i];
 				hartree[i] = positiondensity * UHartree[i];
 

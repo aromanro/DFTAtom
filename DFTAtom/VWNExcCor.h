@@ -52,6 +52,18 @@ namespace DFT {
 		inline static double ecDif(double y, double dify, double A, double y0, double b, double c, double Y0,  double Y)
 		{
 			return A * (c * dify - b * y0 * y) / (dify * Y); // B.6
+			
+			// alternate formula to check if getting better results (not really):
+			/*
+			const double d = c * y0;
+			const double b1 = (b * y0 - c) / d;
+			const double b2 = (y0 - b) / d;
+			const double b3 = -1. / d;
+			const double y2 = y * y;
+			const double y3 = y2 * y;
+		
+			return A * (1. + b1 * y) / (1. + b1 * y + b2 * y2 + b3 * y3);
+			*/
 		}
 
 	public:
@@ -177,7 +189,7 @@ namespace DFT {
 				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
 				const double deltaec = eca * interp; // eq. 8 NIST
 
-				const double betad = fdd * ((ecfd - ecpd) / eca - ecad * deltaecfp / (eca * eca));
+				const double betad = fdd / eca * (ecfd - ecpd - ecad * deltaecfp / eca);
 				const double interpd = fval / fdd * zeta4 * betad;
 
 				// derivative with respect to rs
@@ -190,6 +202,9 @@ namespace DFT {
 					+ ecp
 					// the polarization part
 					+ deltaec
+					// this is the same as above, actually, just checking to see if there is a mistake:
+					//+ eca * fval / fdd * (1. - zeta4)
+					//+ deltaecfp * fval * zeta4		
 
 					// derivative
 					- deriv;
@@ -265,7 +280,7 @@ namespace DFT {
 				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
 				const double deltaec = eca * interp; // eq. 8 NIST
 
-				const double betad = fdd * ((ecfd - ecpd) / eca - ecad * deltaecfp / (eca * eca));
+				const double betad = fdd / eca * (ecfd - ecpd - ecad * deltaecfp / eca);
 				const double interpd = fval / fdd * zeta4 * betad;
 
 				const double deriv = 1. / 3. * (ecpd // paramagnetic part
