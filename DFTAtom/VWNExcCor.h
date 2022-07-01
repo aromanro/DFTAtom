@@ -20,7 +20,7 @@ namespace DFT {
 		static constexpr double fourM_PI = 4. * M_PI;
 
 		// values for 'paramagnetic' variant (used for LDA and LSDA)
-		static constexpr double AP = 0.0310907; // actually 0.5 * A
+		static constexpr double AP = 0.0310907; // actually 0.5 * A, because they are originally given in Rydbergs
 		static constexpr double y0P = -0.10498;
 		static constexpr double bP = 3.72744;
 		static constexpr double cP = 12.93532;
@@ -127,7 +127,7 @@ namespace DFT {
 		{
 			int sz = static_cast<int>(na.size());
 			if (sz != nb.size()) return {};
-
+			
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient - see eq 4 NIST, but it's arranged
 			static const double X2 = pow(2., 1. / 3.);
 			static const double fdd = 4. / (9. * (pow(2., 1. / 3.) - 1.));
@@ -211,11 +211,13 @@ namespace DFT {
 					
 
 				// derivative with respect to zeta
-				const double dterm =
+				double dterm =
 					// exchange part
 					exdif * dfval
 					// correlation part
 					+ eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
+
+				dterm *= 0.5; // WHY?
 
 				va[i] = res[i] + (1. - zeta) * dterm;
 				vb[i] = res[i] - (1. + zeta) * dterm;
