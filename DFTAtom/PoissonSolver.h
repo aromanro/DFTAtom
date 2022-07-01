@@ -73,7 +73,6 @@ namespace DFT {
 				// step becomes 1 for the nonuniform grid, so multiplication with delta2 as above disappears from here
 				Source[i] *= fourM_PIRp2delta2 * exp(i * twodelta) * density[i];
 
-
 			SetBoundaries(0, Z);
 
 			FullCycle(1E-3, 1E-14);

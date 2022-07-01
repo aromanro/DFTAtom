@@ -639,7 +639,7 @@ namespace DFT {
 
 	void DFTAtom::CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
-		static const double energyErr = 1E-13;
+		static const double energyErr = 1E-12;
 		const double oneMinusAlpha = 1. - alpha;
 		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
 		const int NumSteps = NumGridNodes - 1;
@@ -711,7 +711,10 @@ namespace DFT {
 
 			// ******************************************************************************************************************
 			// recompute things before computing for beta?
-
+			// obviously a step gets slower
+			// I didn't necesarily got fewer steps for convergence, so I leave this commented out
+			
+			/*
 			for (int i = 1; i < NumGridNodes; ++i)
 				density[i] = densityAlpha[i] + densityBeta[i];
 
@@ -730,7 +733,8 @@ namespace DFT {
 				//potentialAlpha.m_potentialValues[i] = U + va[i];
 				potentialBeta.m_potentialValues[i] = U + vb[i];
 			}
-
+			*/
+			
 			// ******************************************************************************************************************
 
 			for (int i = 0; i < NumGridNodes; ++i)
@@ -801,7 +805,7 @@ namespace DFT {
 			const double eExcDif = fourM_PI * DFT::Integral::Boole(1, eexcDeriv);
 			Exc += eExcDif;
 
-			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(1, hartree);
+			const double Ehartree = -2. * M_PI * DFT::Integral::Boole(1, hartree);
 
 			const double Epotential = fourM_PI * DFT::Integral::Boole(1, potentiale);
 
@@ -810,7 +814,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-11 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 				break;

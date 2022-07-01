@@ -208,9 +208,10 @@ namespace DFT {
 
 					// derivative
 					- deriv;
+					
 
 				// derivative with respect to zeta
-				const double dterm = 
+				const double dterm =
 					// exchange part
 					exdif * dfval
 					// correlation part
