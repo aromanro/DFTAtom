@@ -603,6 +603,10 @@ namespace DFT {
 	}
 
 
+//**********************************************************************************************************************************
+// LSDA code
+//**********************************************************************************************************************************
+
 	void DFTAtom::InitializeLevels(int Z, int& numAlphaElectrons, int& numBetaElectrons, std::vector<Subshell>& levelsAlpha, std::vector<Subshell>& levelsBeta)
 	{
 		levelsAlpha = AufbauPrinciple::GetSubshells(Z);

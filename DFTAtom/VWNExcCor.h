@@ -67,6 +67,9 @@ namespace DFT {
 		}
 
 	public:
+		//**********************************************************************************************************************************
+		// LSD code
+		//**********************************************************************************************************************************
 		static std::vector<double> Vexc(const std::vector<double>& n)
 		{
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
@@ -123,6 +126,10 @@ namespace DFT {
 			return res;
 		}
 
+		//**********************************************************************************************************************************
+		// LSDA code
+		//**********************************************************************************************************************************
+
 		static std::vector<double> Vexc(const std::vector<double>& na, const std::vector<double>& nb, std::vector<double>& va, std::vector<double>& vb)
 		{
 			int sz = static_cast<int>(na.size());
@@ -130,6 +137,7 @@ namespace DFT {
 			
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient - see eq 4 NIST, but it's arranged
 			static const double X2 = pow(2., 1. / 3.);
+			static const double X12 = X1 * X2;
 			static const double fdd = 4. / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
@@ -149,10 +157,15 @@ namespace DFT {
 				}
 
 				const double rs = pow(3. / (fourM_PI * n), 1. / 3.); // eq 2 NIST
+				const double rsa = pow(3. / (fourM_PI * na[i]), 1. / 3.); // eq 2 NIST
+				const double rsb = pow(3. / (fourM_PI * nb[i]), 1. / 3.); // eq 2 NIST
 
 				const double exp = -X1 / rs; // see eq 4 NIST
 				const double exf = X2 * exp; // see eq 4 NIST but ef = 2^1/3 * ep
 				const double exdif = exf - exp;
+
+				const double exfa = -X12 / rsa;
+				const double exfb = -X12 / rsb;
 
 				const double zeta = (roa - rob) / n; // eq 3 NIST				
 				const double zeta3 = zeta * zeta * zeta;
@@ -185,7 +198,7 @@ namespace DFT {
 
 				const double deltaecfp = ecf - ecp; // eq 10 NIST
 				const double beta = fdd * deltaecfp / eca - 1.; // eq. 9 NIST
-				const double opbz4 = 1 + beta * zeta4;
+				const double opbz4 = 1. + beta * zeta4;
 				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
 				const double deltaec = eca * interp; // eq. 8 NIST
 
@@ -196,10 +209,10 @@ namespace DFT {
 				const double deriv = 1. / 3. * (ecpd // paramagnetic part
 					+ ecad * interp + eca * interpd);
 
-				res[i] = exp + exdif * fval // exchange term - eq 1 NIST
+				res[i] = 
 					// the following two terms sum make the eq 7 from NIST
 					// paramagnetic part:
-					+ ecp
+					ecp
 					// the polarization part
 					+ deltaec
 					// this is the same as above, actually, just checking to see if there is a mistake:
@@ -209,18 +222,13 @@ namespace DFT {
 					// derivative
 					- deriv;
 					
-
 				// derivative with respect to zeta
-				double dterm =
-					// exchange part
-					exdif * dfval
-					// correlation part
-					+ eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
+				double dterm = eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
 
-				dterm *= 0.5; // WHY?
+				va[i] = exfa + res[i] + (1. - zeta) * dterm;
+				vb[i] = exfb + res[i] - (1. + zeta) * dterm;
 
-				va[i] = res[i] + (1. - zeta) * dterm;
-				vb[i] = res[i] - (1. + zeta) * dterm;
+				res[i] += exp + exdif * fval; // exchange term - eq 1 NIST
 			}
 
 			return res;
@@ -233,7 +241,7 @@ namespace DFT {
 
 			static const double	X1d = 0.25 * pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 			static const double X2d = pow(2., 1. / 3.);
-			static const double fdd = 4 / (9. * (pow(2., 1. / 3.) - 1.));
+			static const double fdd = 4. / (9. * (pow(2., 1. / 3.) - 1.));
 
 			std::vector<double> res(sz);
 
