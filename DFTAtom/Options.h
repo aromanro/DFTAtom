@@ -23,6 +23,7 @@ public:
 		MaxR(other.MaxR),
 		deltaGrid(other.deltaGrid),
 		alpha(other.alpha),
+		method(other.method),
 		m_fileconfig(nullptr)
 	{
 	}
@@ -34,6 +35,7 @@ public:
 		MaxR = other.MaxR;
 		deltaGrid = other.deltaGrid;
 		alpha = other.alpha;
+		method = other.method;
 		m_fileconfig = nullptr;
 
 		return *this;
@@ -48,6 +50,8 @@ public:
 	double MaxR;
 	double deltaGrid;
 	double alpha;
+
+	int method; // 0 LDA, 1 LSDA
 
 protected:
 	void Open();

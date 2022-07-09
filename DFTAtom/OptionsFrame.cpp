@@ -15,6 +15,7 @@
 #define ID_R 103
 #define ID_DELTA 104
 #define ID_ALPHA 105
+#define ID_METHOD 106
 
 wxDECLARE_APP(DFTAtomApp);
 
@@ -26,7 +27,7 @@ EVT_CLOSE(OptionsFrame::OnClose)
 wxEND_EVENT_TABLE()
 
 OptionsFrame::OptionsFrame(const Options& opt, const wxString & title, wxWindow* parent)
-	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxSize(300, 175)) 
+	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxSize(300, 255)) 
 {
 	options = opt;
 	CreateControls();
@@ -129,6 +130,22 @@ void OptionsFrame::CreateControls()
 	wxTextCtrl* AlphaCtrl = new wxTextCtrl(this, ID_ALPHA, str, wxDefaultPosition, wxSize(60, -1), 0);
 	box->Add(AlphaCtrl, 0, wxALIGN_CENTER_VERTICAL, 5);
 
+
+	box->AddSpacer(5);
+	boxSizer->AddSpacer(5);
+
+	box = new wxBoxSizer(wxHORIZONTAL);
+	boxSizer->Add(box, 0, wxGROW, 5);
+
+	box->AddSpacer(5);
+
+	wxArrayString choices;
+	choices.Add("LSD");
+	choices.Add("LSDA");
+	wxRadioBox* m_radioBox = new wxRadioBox(this, ID_METHOD, "Method", wxDefaultPosition, wxDefaultSize, choices, 2, wxRA_VERTICAL);
+	box->Add(m_radioBox, 0, wxALIGN_CENTER_VERTICAL, 5);
+
+
 	// *****************************************************************
 	// Validators
 
@@ -155,6 +172,7 @@ void OptionsFrame::CreateControls()
 	dblVal3.SetPrecision(2);
 	AlphaCtrl->SetValidator(dblVal3);
 
+	m_radioBox->SetValidator(wxGenericValidator(&options.method));
 
 	// *****************************************************************
 	

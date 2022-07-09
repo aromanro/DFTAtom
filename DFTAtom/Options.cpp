@@ -3,7 +3,7 @@
 #include <wx/stdpaths.h> 
 
 Options::Options()
-	: Z(36), MultigridLevels(12), MaxR(10.), deltaGrid(0.001), alpha(0.5),
+	: Z(36), MultigridLevels(12), MaxR(10.), deltaGrid(0.001), alpha(0.5), method(0),
 	m_fileconfig(nullptr)
 {
 }
@@ -45,6 +45,8 @@ void Options::Load()
 		MaxR = conf->ReadDouble("/MaxR", 10.);
 		deltaGrid = conf->ReadDouble("/deltaGrid", 0.001);
 		alpha = conf->ReadDouble("/alpha", 0.5);
+
+		method = conf->ReadLong("/Method", 0);
 	}
 	Close();
 }
@@ -61,6 +63,8 @@ void Options::Save()
 		conf->Write("/MaxR", MaxR);
 		conf->Write("/deltaGrid", deltaGrid);
 		conf->Write("/alpha", alpha);
+
+		conf->Write("/Method", method);
 	}
 
 	if (m_fileconfig)

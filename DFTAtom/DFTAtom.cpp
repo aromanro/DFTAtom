@@ -60,14 +60,12 @@ namespace DFT {
 	void DFTAtom::CalculateUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR)
 	{
 		static const double energyErr = 1E-12;
-
 		const double oneMinusAlpha = 1. - alpha;
-
 		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
-
 		const int NumSteps = NumGridNodes - 1;
-
 		const double h = MaxR / NumSteps;
+
+		std::cout << "Computing atom with Z=" << Z << " using LDA with uniform grid" << std::endl;
 
 		std::vector<double> density(NumGridNodes);
 
@@ -355,6 +353,7 @@ namespace DFT {
 		const int NumSteps = NumGridNodes - 1;
 		const double Rp = MaxR / (exp(NumSteps * deltaGrid) - 1.);
 
+		std::cout << "Computing atom with Z=" << Z << " using LSD with non-uniform grid" << std::endl;
 
 		std::vector<double> density(NumGridNodes);
 
@@ -648,6 +647,8 @@ namespace DFT {
 		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
 		const int NumSteps = NumGridNodes - 1;
 		const double Rp = MaxR / (exp(NumSteps * deltaGrid) - 1.);
+
+		std::cout << "Computing atom with Z=" << Z << " using LSDA with non-uniform grid" << std::endl;
 
 		std::vector<double> density(NumGridNodes);
 		std::vector<double> densityAlpha(NumGridNodes);
