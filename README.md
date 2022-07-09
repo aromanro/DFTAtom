@@ -1,5 +1,5 @@
 # DFTAtom
-Density Functional Theory in real space, for atoms, both LSD and LSDA
+Density Functional Theory in real space, for atoms, both LDA and LSDA
 
 [![CodeFactor](https://www.codefactor.io/repository/github/aromanro/dftatom/badge/master)](https://www.codefactor.io/repository/github/aromanro/dftatom/overview/master)
 
