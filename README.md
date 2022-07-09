@@ -1,5 +1,5 @@
 # DFTAtom
-Density Functional Theory in real space, for atoms
+Density Functional Theory in real space, for atoms, both LSD and LSDA
 
 [![CodeFactor](https://www.codefactor.io/repository/github/aromanro/dftatom/badge/master)](https://www.codefactor.io/repository/github/aromanro/dftatom/overview/master)
 
@@ -13,7 +13,7 @@ Description is on the Computational Physics Blog: https://compphys.go.ro/dft-for
 
 I changed the code to 'shoot' from both 'infinity' and from the nucleus and meet and match the solutions. Still does not work very well for heavy atoms, but for the program purpose it seems to work okish.
 
-As it's LDA and there is the assumption of spherical symmetry (for non occupied shells you don't really have it except for the 'special' cases when you go with LSDA, for the others there is cylindrical symmetry), it kind of works only for noble gases, but you can get quite ok results for other atoms, too.
+As it's LDA (originally that was the case, now it has LSDA as well) and there is the assumption of spherical symmetry (for non occupied shells you don't really have it except for the 'special' cases when you go with LSDA, for the others there is cylindrical symmetry), it kind of works only for noble gases, but you can get quite ok results for other atoms, too.
 
 Here is what I get in a bad scenario, Radon:
 
