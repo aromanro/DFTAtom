@@ -640,6 +640,206 @@ namespace DFT {
 	// the Poisson solver will solve for the sum of the two,
 	// but Schrodinger is solved for different effective potentials
 
+
+	void DFTAtom::CalculateUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR)
+	{
+		static const double energyErr = 1E-12;
+		const double oneMinusAlpha = 1. - alpha;
+		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
+		const int NumSteps = NumGridNodes - 1;
+		const double h = MaxR / NumSteps;
+
+		std::cout << "Computing atom with Z=" << Z << " using LSDA with uniform grid" << std::endl;
+
+		std::vector<double> density(NumGridNodes);
+		std::vector<double> densityAlpha(NumGridNodes);
+		std::vector<double> densityBeta(NumGridNodes);
+
+		Potential potentialAlpha;
+		potentialAlpha.m_potentialValues.resize(NumGridNodes);
+		Potential potentialBeta;
+		potentialBeta.m_potentialValues.resize(NumGridNodes);
+
+		int numAlphaElectrons, numBetaElectrons;
+		std::vector<Subshell> levelsAlpha, levelsBeta;
+		InitializeLevels(Z, numAlphaElectrons, numBetaElectrons, levelsAlpha, levelsBeta);
+
+		double Eold = 0;
+
+
+		const double volume = 4. / 3. * M_PI * MaxR * MaxR * MaxR;
+		const double constDensAlpha = numAlphaElectrons / volume;
+		const double constDensBeta = numBetaElectrons / volume;
+		densityAlpha[0] = densityBeta[0] = density[0] = 0;
+		for (int i = 1; i < NumGridNodes; ++i)
+		{
+			densityAlpha[i] = constDensAlpha;
+			densityBeta[i] = constDensBeta;
+			density[i] = constDensAlpha + constDensBeta;
+		}
+
+		PoissonSolver poissonSolver(MultigridLevels);
+
+		std::vector<double> UHartree = poissonSolver.SolvePoissonUniform(Z, MaxR, density);
+
+		std::vector<double> va;
+		std::vector<double> vb;
+
+		std::vector<double> Vexc = VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
+
+		potentialAlpha.m_potentialValues[0] = 0;
+		potentialBeta.m_potentialValues[0] = 0;
+		for (int i = 1; i < NumGridNodes; ++i)
+		{
+			const double realPos = h*i;
+			const double U = (-Z + UHartree[i]) / realPos;
+
+			potentialAlpha.m_potentialValues[i] = U + va[i];
+			potentialBeta.m_potentialValues[i] = U + vb[i];
+		}
+
+		bool lastTimeConverged = false;
+
+		for (int sp = 0; sp < 150; ++sp)
+		{
+			std::cout << "Step: " << sp << std::endl;
+
+			double Eelectronic = 0;
+
+			std::vector<double> newDensity(NumGridNodes, 0);
+
+			Numerov<NumerovFunctionRegularGrid> numerovAlpha(potentialAlpha, 0, MaxR, NumGridNodes);
+
+			bool reallyConverged1 = true;
+			double BottomEnergy = -double(Z) * Z - 1.;
+
+			LoopOverLevels(numerovAlpha, levelsAlpha, newDensity, Eelectronic, BottomEnergy, NumSteps, MaxR, h, reallyConverged1, energyErr, false, true);
+
+			for (int i = 1; i < NumGridNodes; ++i)
+			{
+				const double position = i * h;
+
+				// 4 * M_PI appears because we're in spherical coordinates
+				// the actual integration for the 'true' wavefunction gives a 4 M_PI
+				// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
+
+				newDensity[i] /= fourM_PI * position * position;
+				densityAlpha[i] = alpha * densityAlpha[i] + oneMinusAlpha * newDensity[i];
+			}
+
+			for (int i = 0; i < NumGridNodes; ++i)
+				newDensity[i] = 0;
+
+			Numerov<NumerovFunctionRegularGrid> numerovBeta(potentialBeta, 0, MaxR, NumGridNodes);
+
+			bool reallyConverged2 = true;
+			BottomEnergy = -double(Z) * Z - 1.;
+
+			LoopOverLevels(numerovBeta, levelsBeta, newDensity, Eelectronic, BottomEnergy, NumSteps, MaxR, h, reallyConverged2, energyErr, false, false);
+
+			for (int i = 1; i < NumGridNodes; ++i)
+			{
+				const double position = i * h;
+
+				// 4 * M_PI appears because we're in spherical coordinates
+				// the actual integration for the 'true' wavefunction gives a 4 M_PI
+				// the radial wavefunction is actually u / r, whence also the division by position * position to get the true density
+
+				newDensity[i] /= fourM_PI * position * position;
+				densityBeta[i] = alpha * densityBeta[i] + oneMinusAlpha * newDensity[i];
+			}
+
+
+			for (int i = 1; i < NumGridNodes; ++i)
+				density[i] = densityAlpha[i] + densityBeta[i];
+
+
+
+			UHartree = poissonSolver.SolvePoissonUniform(Z, MaxR, density);
+			Vexc = DFT::VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
+
+			// Nuclear energy:
+			std::vector<double> nuclear(NumGridNodes);
+
+			// Exchange-correlation energy:
+			std::vector<double> exccor(NumGridNodes);
+
+			std::vector<double> eexcDeriv = DFT::VWNExchCor::eexcDif(densityAlpha, densityBeta);
+
+			// Hartree energy:
+			std::vector<double> hartree(NumGridNodes);
+
+			// potential energy:
+			std::vector<double> potentiale(NumGridNodes);
+
+			potentialAlpha.m_potentialValues[0] = potentialBeta.m_potentialValues[0] = 0;
+			nuclear[0] = exccor[0] = eexcDeriv[0] = hartree[0] = potentiale[0] = 0;
+
+			for (int i = 1; i < NumGridNodes; ++i)
+			{
+				const double position = i * h;
+
+				const double U = (-Z + UHartree[i]) / position;
+
+				potentialAlpha.m_potentialValues[i] = U + va[i];
+				potentialBeta.m_potentialValues[i] = U + vb[i];
+
+				const double positiondensity = position * density[i];
+
+				nuclear[i] = Z * positiondensity;
+
+				const double position2 = position * position;
+				const double position2density = position2 * density[i];
+
+				exccor[i] = position2density * Vexc[i];
+				eexcDeriv[i] = position2density * eexcDeriv[i];
+				hartree[i] = positiondensity * UHartree[i];
+
+				potentiale[i] = position2 * (densityAlpha[i] * potentialAlpha.m_potentialValues[i] + densityBeta[i] * potentialBeta.m_potentialValues[i]);
+			}
+
+			const double Enuclear = -fourM_PI * DFT::Integral::Boole(h, nuclear);
+
+			double Exc = 4 * M_PI * DFT::Integral::Boole(h, exccor);
+
+			const double eExcDif = fourM_PI * DFT::Integral::Boole(h, eexcDeriv);
+			Exc += eExcDif;
+
+			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(h, hartree);
+
+			const double Epotential = fourM_PI * DFT::Integral::Boole(h, potentiale);
+
+			const double Ekinetic = Eelectronic - Epotential;
+			const double Etotal = Eelectronic + Ehartree + eExcDif;
+
+			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
+
+			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
+			{
+				std::cout << std::endl << "Finished!" << std::endl << std::endl;
+
+				break;
+			}
+			Eold = Etotal;
+			lastTimeConverged = reallyConverged1 && reallyConverged2;
+
+			std::cout << "********************************************************************************" << std::endl;
+		}
+
+		// sort levels by energy, just in case the energy values for levels do not come up as in the expected order (there are exceptions to the aufbau principle, too)
+		std::sort(levelsAlpha.begin(), levelsAlpha.end(), [](const auto& val1, const auto& val2) -> bool { return val1.E < val2.E; });
+		std::sort(levelsBeta.begin(), levelsBeta.end(), [](const auto& val1, const auto& val2) -> bool { return val1.E < val2.E; });
+
+		std::cout << "Alpha: ";
+		for (const auto& level : levelsAlpha)
+			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
+
+		std::cout << "\nBeta: ";
+		for (const auto& level : levelsBeta)
+			std::cout << level.m_N + 1 << orb[level.m_L] << level.m_nrElectrons << " ";
+	}
+
+
 	void DFTAtom::CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const double energyErr = 1E-12;

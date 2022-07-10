@@ -187,10 +187,11 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 		MyStream myStream(bufferStr, bufferStrMutex);
 		RedirectStream redirect(std::cout, myStream);
 		
-		//DFT::DFTAtom::CalculateUniformLDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR);
 		if (options.method)
+			//DFT::DFTAtom::CalculateUniformLSDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR);
 			DFT::DFTAtom::CalculateNonUniformLSDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR, options.deltaGrid);
 		else
+			//DFT::DFTAtom::CalculateUniformLDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR);
 			DFT::DFTAtom::CalculateNonUniformLDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR, options.deltaGrid);
 
 		inExecution = false;
