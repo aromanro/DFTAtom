@@ -12,6 +12,8 @@
 
 #include "DFTAtom.h"
 
+#include "Integral.h"
+
 #define ID_TIMER   101
 #define ID_EXECUTE 102
 
@@ -186,7 +188,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 	{
 		MyStream myStream(bufferStr, bufferStrMutex);
 		RedirectStream redirect(std::cout, myStream);
-		
+
 		if (options.method)
 			//DFT::DFTAtom::CalculateUniformLSDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR);
 			DFT::DFTAtom::CalculateNonUniformLSDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR, options.deltaGrid);

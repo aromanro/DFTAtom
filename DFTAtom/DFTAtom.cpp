@@ -24,7 +24,7 @@ namespace DFT {
 		for (int i = 0; i < result2.size(); ++i)
 			result2[i] = Psi[i] * Psi[i];
 
-		const double integralForSquare = DFT::Integral::Boole(h, result2);
+		const double integralForSquare = DFT::Integral::Romberg(h, result2);
 		const double unorm = 1. / sqrt(integralForSquare);
 
 		for (int i = 0; i < Psi.size(); ++i)
@@ -48,7 +48,7 @@ namespace DFT {
 			result2[i] *= cnst;
 		}
 
-		const double integralForSquare = DFT::Integral::Boole(1, result2); // for nonuniform case the step is 1
+		const double integralForSquare = DFT::Integral::Romberg(1, result2); // for nonuniform case the step is 1
 		const double unorm = 1. / sqrt(integralForSquare);
 
 		for (int i = 0; i < Psi.size(); ++i)
@@ -173,16 +173,16 @@ namespace DFT {
 				potentiale[i] = position2density * potential.m_potentialValues[i];
 			}
 
-			const double Enuclear = -fourM_PI * DFT::Integral::Boole(h, nuclear);
+			const double Enuclear = -fourM_PI * DFT::Integral::Romberg(h, nuclear);
 
-			double Exc = 4 * M_PI * DFT::Integral::Boole(h, exccor);
+			double Exc = 4 * M_PI * DFT::Integral::Romberg(h, exccor);
 
-			const double eExcDif = fourM_PI * DFT::Integral::Boole(h, eexcDeriv);
+			const double eExcDif = fourM_PI * DFT::Integral::Romberg(h, eexcDeriv);
 			Exc += eExcDif;
 
-			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(h, hartree);
+			const double Ehartree = -2 * M_PI * DFT::Integral::Romberg(h, hartree);
 
-			const double Epotential = fourM_PI * DFT::Integral::Boole(h, potentiale);
+			const double Epotential = fourM_PI * DFT::Integral::Romberg(h, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
@@ -454,15 +454,15 @@ namespace DFT {
 				potentiale[i] = position2density * potential.m_potentialValues[i];
 			}
 
-			const double Enuclear = -fourM_PI * DFT::Integral::Boole(1, nuclear);
-			double Exc = fourM_PI * DFT::Integral::Boole(1, exccor);
+			const double Enuclear = -fourM_PI * DFT::Integral::Romberg(1, nuclear);
+			double Exc = fourM_PI * DFT::Integral::Romberg(1, exccor);
 
-			const double eExcDif = fourM_PI * DFT::Integral::Boole(1, eexcDeriv);
+			const double eExcDif = fourM_PI * DFT::Integral::Romberg(1, eexcDeriv);
 			Exc += eExcDif;
 			
-			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(1, hartree);
+			const double Ehartree = -2 * M_PI * DFT::Integral::Romberg(1, hartree);
 
-			const double Epotential = fourM_PI * DFT::Integral::Boole(1, potentiale);
+			const double Epotential = fourM_PI * DFT::Integral::Romberg(1, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
@@ -798,16 +798,16 @@ namespace DFT {
 				potentiale[i] = position2 * (densityAlpha[i] * potentialAlpha.m_potentialValues[i] + densityBeta[i] * potentialBeta.m_potentialValues[i]);
 			}
 
-			const double Enuclear = -fourM_PI * DFT::Integral::Boole(h, nuclear);
+			const double Enuclear = -fourM_PI * DFT::Integral::Romberg(h, nuclear);
 
-			double Exc = 4 * M_PI * DFT::Integral::Boole(h, exccor);
+			double Exc = 4 * M_PI * DFT::Integral::Romberg(h, exccor);
 
-			const double eExcDif = fourM_PI * DFT::Integral::Boole(h, eexcDeriv);
+			const double eExcDif = fourM_PI * DFT::Integral::Romberg(h, eexcDeriv);
 			Exc += eExcDif;
 
-			const double Ehartree = -2 * M_PI * DFT::Integral::Boole(h, hartree);
+			const double Ehartree = -2 * M_PI * DFT::Integral::Romberg(h, hartree);
 
-			const double Epotential = fourM_PI * DFT::Integral::Boole(h, potentiale);
+			const double Epotential = fourM_PI * DFT::Integral::Romberg(h, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
@@ -1004,15 +1004,15 @@ namespace DFT {
 				potentiale[i] = position2densityAlpha * potentialAlpha.m_potentialValues[i] + position2densityBeta * potentialBeta.m_potentialValues[i];
 			}
 
-			const double Enuclear = -fourM_PI * DFT::Integral::Boole(1, nuclear);
-			double Exc = fourM_PI * DFT::Integral::Boole(1, exccor);
+			const double Enuclear = -fourM_PI * DFT::Integral::Romberg(1, nuclear);
+			double Exc = fourM_PI * DFT::Integral::Romberg(1, exccor);
 
-			const double eExcDif = fourM_PI * DFT::Integral::Boole(1, eexcDeriv);
+			const double eExcDif = fourM_PI * DFT::Integral::Romberg(1, eexcDeriv);
 			Exc += eExcDif;
 
-			const double Ehartree = -2. * M_PI * DFT::Integral::Boole(1, hartree);
+			const double Ehartree = -2. * M_PI * DFT::Integral::Romberg(1, hartree);
 
-			const double Epotential = fourM_PI * DFT::Integral::Boole(1, potentiale);
+			const double Epotential = fourM_PI * DFT::Integral::Romberg(1, potentiale);
 
 			const double Ekinetic = Eelectronic - Epotential;
 			const double Etotal = Eelectronic + Ehartree + eExcDif;
