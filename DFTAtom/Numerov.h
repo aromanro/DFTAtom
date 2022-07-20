@@ -119,7 +119,7 @@ namespace DFT {
 		inline double GetMaxRadiusIndex(double E, size_t maxIndex, double /*stepSize*/) const
 		{
 			double val = GetBoundaryValueFar(static_cast<double>(maxIndex), E);
-			if (val > MaxRadiusLimit) static_cast<double>(maxIndex);
+			if (val > MaxRadiusLimit) val = static_cast<double>(maxIndex);
 
 			size_t minIndex = 1;
 			while (maxIndex - minIndex > 1)

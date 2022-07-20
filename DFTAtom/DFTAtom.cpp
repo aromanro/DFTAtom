@@ -60,6 +60,7 @@ namespace DFT {
 	void DFTAtom::CalculateUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR)
 	{
 		static const double energyErr = 1E-12;
+		static const double totalEnergyErr = 1E-11;
 		const double oneMinusAlpha = 1. - alpha;
 		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
 		const int NumSteps = NumGridNodes - 1;
@@ -189,7 +190,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " <<  std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-9 && reallyConverged && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < totalEnergyErr && reallyConverged && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 
@@ -345,6 +346,7 @@ namespace DFT {
 	void DFTAtom::CalculateNonUniformLDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const double energyErr = 1E-12; 
+		static const double totalEnergyErr = 1E-11;
 
 		const double oneMinusAlpha = 1. - alpha;
 		
@@ -469,7 +471,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < totalEnergyErr && reallyConverged && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 
@@ -644,6 +646,8 @@ namespace DFT {
 	void DFTAtom::CalculateUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR)
 	{
 		static const double energyErr = 1E-12;
+		static const double totalEnergyErr = 1E-11;
+
 		const double oneMinusAlpha = 1. - alpha;
 		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
 		const int NumSteps = NumGridNodes - 1;
@@ -814,7 +818,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < totalEnergyErr && reallyConverged1 && reallyConverged2 && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 
@@ -843,6 +847,8 @@ namespace DFT {
 	void DFTAtom::CalculateNonUniformLSDA(int Z, int MultigridLevels, double alpha, double MaxR, double deltaGrid)
 	{
 		static const double energyErr = 1E-12;
+		static const double totalEnergyErr = 1E-11;
+
 		const double oneMinusAlpha = 1. - alpha;
 		const int NumGridNodes = PoissonSolver::GetNumberOfNodes(MultigridLevels);
 		const int NumSteps = NumGridNodes - 1;
@@ -1019,7 +1025,7 @@ namespace DFT {
 
 			std::cout << "Etotal = " << std::fixed << std::setprecision(6) << Etotal << " Ekin = " << std::fixed << std::setprecision(6) << Ekinetic << " Ecoul = " << std::fixed << std::setprecision(6) << -Ehartree << " Eenuc = " << std::fixed << std::setprecision(6) << Enuclear << " Exc = " << std::fixed << std::setprecision(6) << Exc << std::endl;
 
-			if (abs((Eold - Etotal) / Etotal) < 1E-10 && reallyConverged1 && reallyConverged2 && lastTimeConverged)
+			if (abs((Eold - Etotal) / Etotal) < totalEnergyErr && reallyConverged1 && reallyConverged2 && lastTimeConverged)
 			{
 				std::cout << std::endl << "Finished!" << std::endl << std::endl;
 				break;
