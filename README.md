@@ -1,6 +1,7 @@
 # DFTAtom
 Density Functional Theory in real space, for atoms, both LDA and LSDA
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/66cd351488564b69b2d4fba2b3aa0435)](https://app.codacy.com/gh/aromanro/DFTAtom?utm_source=github.com&utm_medium=referral&utm_content=aromanro/DFTAtom&utm_campaign=Badge_Grade_Settings)
 [![CodeFactor](https://www.codefactor.io/repository/github/aromanro/dftatom/badge/master)](https://www.codefactor.io/repository/github/aromanro/dftatom/overview/master)
 
 Description is on the Computational Physics Blog: https://compphys.go.ro/dft-for-an-atom/
