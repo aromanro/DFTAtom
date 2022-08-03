@@ -920,34 +920,6 @@ namespace DFT {
 
 			CalculateNonUniformDensity(densityAlpha, alpha, oneMinusAlpha, deltaGrid, Rp, NumGridNodes, numerovAlpha, levelsAlpha, newDensity, Eelectronic, BottomEnergy, NumSteps, Rp, deltaGrid, reallyConverged1, energyErr, false, true);
 
-			// ******************************************************************************************************************
-			// recompute things before computing for beta?
-			// obviously a step gets slower
-			// I didn't necesarily got fewer steps for convergence, so I leave this commented out
-			
-			/*
-			for (int i = 1; i < NumGridNodes; ++i)
-				density[i] = densityAlpha[i] + densityBeta[i];
-
-			UHartree = poissonSolver.SolvePoissonNonUniform(Z, MaxR, density);
-			Vexc = DFT::VWNExchCor::Vexc(densityAlpha, densityBeta, va, vb);
-
-			potentialAlpha.m_potentialValues[0] = potentialBeta.m_potentialValues[0] = 0;
-			for (int i = 1; i < NumGridNodes; ++i)
-			{
-				const double expD = exp(deltaGrid * i);
-				const double position = Rp * (expD - 1.);
-
-				const double cnst = Rp * deltaGrid * expD;
-				const double U = (-Z + UHartree[i]) / position;
-
-				//potentialAlpha.m_potentialValues[i] = U + va[i];
-				potentialBeta.m_potentialValues[i] = U + vb[i];
-			}
-			*/
-			
-			// ******************************************************************************************************************
-
 			for (int i = 0; i < NumGridNodes; ++i)
 				newDensity[i] = 0;
 
