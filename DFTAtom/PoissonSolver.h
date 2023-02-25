@@ -69,7 +69,8 @@ namespace DFT {
 			const double twodelta = 2. * deltaGrid;
 
 			const double fourM_PIRp2delta2 = fourM_PI * Rp2delta2;
-			for (int i = 1; i < Source.size() - 1; ++i)
+			const int lim = static_cast<int>(Source.size() - 1);
+			for (int i = 1; i < lim; ++i)
 				// step becomes 1 for the nonuniform grid, so multiplication with delta2 as above disappears from here
 				Source[i] *= fourM_PIRp2delta2 * exp(i * twodelta) * density[i];
 
@@ -102,7 +103,6 @@ namespace DFT {
 			//           *     *      
 			//                  *       
 			// -------------------------------------- finest grid, index 0
-
 
 			for (int i = static_cast<int>(PhiLevels.size() - 2); i > 0; --i)
 			{

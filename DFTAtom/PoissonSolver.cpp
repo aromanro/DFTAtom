@@ -19,9 +19,9 @@ namespace DFT {
 		}
 
 		double dGridLevel = deltaGrid;
-		for (double& lvlDeltaGrid : deltaGridLevel)
+		for (int i = 0; i < deltaGridLevel.size(); ++i)
 		{
-			lvlDeltaGrid = dGridLevel;
+			deltaGridLevel[i] = dGridLevel;
 			dGridLevel *= 2;
 		}
 	}
@@ -137,20 +137,23 @@ namespace DFT {
 		for (int i = 0; i < Phidst.size(); ++i)
 			Phidst[i] = 0;
 
-		for (size_t i = 1; i < Sourcedst.size() - 1; ++i)
+		const int lim = static_cast<int>(Sourcedst.size() - 1);
+		for (size_t i = 1; i < lim; ++i)
 		{
 			const size_t twoi = 2 * i;
+			const size_t twoim1 = twoi - 1;
+			const size_t twoip1 = twoi + 1;
 
 			// the 'source' is multiplied by delta^2 (delta = h or step, 1 for the non-uniform case)
 			// but that means it needs adjusting the value with 4 when going to a coarser grid - for the source and second derivative
 			// with 2 for the first derivative (2 * 0.5 = 1)
-			const double adjresidual = 4. * (Sourcesrc[twoi] + Phisrc[twoi - 1] - 2. * Phisrc[twoi] + Phisrc[twoi + 1])
-				- deltaGridLevel[lvl] * (Phisrc[twoi + 1] - Phisrc[twoi - 1]); // for non uniform grid
+			const double adjresidual = 4. * (Sourcesrc[twoi] + Phisrc[twoim1] - 2. * Phisrc[twoi] + Phisrc[twoip1])
+				- deltaGridLevel[lvl] * (Phisrc[twoip1] - Phisrc[twoim1]); // for non uniform grid
 
 			Sourcedst[i] = adjresidual;
 		}
 
-		Sourcedst[0] = Sourcedst[Sourcedst.size() - 1] = 0; // no residual at boundaries, we know the solution exactly
+		Sourcedst[0] = Sourcedst[lim] = 0; // no residual at boundaries, we know the solution exactly
 	}
 
 
@@ -158,10 +161,10 @@ namespace DFT {
 
 	void PoissonSolver::Ascend(int fromLevel, int toLevel, double errorMin, int iterno)
 	{
-		for (int i = fromLevel; i < toLevel; ++i)
+		for (int i = fromLevel; i < toLevel;)
 		{
 			IterateGaussSeidel(i, errorMin, iterno);
-			Restrict(i + 1);
+			Restrict(++i);
 		}
 
 		IterateGaussSeidel(toLevel, errorMin, iterno);
@@ -170,12 +173,13 @@ namespace DFT {
 	double PoissonSolver::Descend(int fromLevel, int toLevel, double errorMin, int iterno)
 	{
 		double err = 1E10;
-		for (int i = fromLevel; i > toLevel; --i)
+		for (int i = fromLevel; i > toLevel;)
 		{
 			const int im1 = i - 1;
 			Prolong(PhiLevels[i], PhiLevels[im1]);
 
 			err = IterateGaussSeidel(im1, errorMin, iterno);
+			i = im1;
 		}
 
 		return err;
