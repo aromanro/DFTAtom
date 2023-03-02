@@ -83,7 +83,7 @@ namespace DFT {
 			const double delta2 = m_delta * m_delta;
 
 			Rp2delta2 = Rp2 * delta2;
-			delta2p4 = delta2 / 4.;
+			delta2p4 = delta2 * 0.25;
 		}
 
 		inline double GetEffectivePotential(unsigned int l, double position, size_t posIndex) const
