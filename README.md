@@ -19,7 +19,7 @@ As it's LDA (originally that was the case, now it has LSDA as well) and there is
 Here is what I get in a bad scenario, Radon:
 
 ```
-Step: 29
+Step: 53
 Energy 1s: -3204.756288 Num nodes: 0
 Energy 2s: -546.577961 Num nodes: 1
 Energy 2p: -527.533025 Num nodes: 0
@@ -35,7 +35,7 @@ Energy 5p: -4.408703 Num nodes: 3
 Energy 5d: -1.911330 Num nodes: 2
 Energy 6s: -0.626571 Num nodes: 5
 Energy 6p: -0.293180 Num nodes: 4
-Etotal = -21861.346900 Ekin = 21854.672701 Ecoul = 8632.016042 Eenuc = -51966.120389 Exc = -381.915254
+Etotal = -21861.346900 Ekin = 21854.672704 Ecoul = 8632.016044 Eenuc = -51966.120394 Exc = -381.915254
 
 Finished!
 
@@ -51,7 +51,7 @@ Using LSDA I've got basically the same results. The last digit from total energi
 For a lighter noble gas I get better results, for Argon for example:
 
 ```
-Step: 31
+Step: 32
 Energy 1s: -113.800134 Num nodes: 0
 Energy 2s: -10.794172 Num nodes: 1
 Energy 2p: -8.443439 Num nodes: 0

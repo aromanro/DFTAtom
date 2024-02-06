@@ -47,6 +47,31 @@ namespace DFT {
 			return sum * delta * coef;
 		}
 
+		template<typename T> static T Simpson38(const double delta, const std::vector<T>& values)
+		{
+			assert(values.size() >= 5);
+			assert(values.size() % 2);
+
+			T sum = values.front() + values.back();
+
+			T sum1 = 0;
+			T sum2 = 0;
+
+			const int szm1 = static_cast<int>(values.size()) - 1;
+
+			for (int i = 1; i < szm1; ++i)
+			{
+				if (i % 3 == 0) sum2 += values[i];
+				else sum1 += values[i];
+			}
+
+			sum += 3. * sum1 + 2. * sum2;
+
+			constexpr double coef = 3. / 8.;
+
+			return sum * delta * coef;
+		}
+
 		template<typename T> static T Boole(const double delta, const std::vector<T>& values)
 		{
 			assert(values.size() > 4);
