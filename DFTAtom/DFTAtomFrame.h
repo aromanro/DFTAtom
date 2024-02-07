@@ -26,7 +26,6 @@ class DFTAtomFrame : public wxFrame
 {
 public:
 	DFTAtomFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
-	~DFTAtomFrame();
 
 private:
 	std::atomic_bool inExecution;
@@ -44,6 +43,8 @@ private:
 	void OnTimer(wxTimerEvent& event);
 
 	wxRichTextCtrl* richTextCtrl;
+
+	std::thread executionThread;
 
 	wxDECLARE_EVENT_TABLE();
 };

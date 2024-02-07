@@ -27,8 +27,8 @@ namespace DFT {
 		const double integralForSquare = DFT::Integral::Simpson38(h, result2);
 		const double unorm = 1. / sqrt(integralForSquare);
 
-		for (int i = 0; i < Psi.size(); ++i)
-			Psi[i] *= unorm;
+		for (double& p : Psi)
+			p *= unorm;
 	}
 
 
@@ -51,8 +51,8 @@ namespace DFT {
 		const double integralForSquare = DFT::Integral::Simpson38(1, result2); // for nonuniform case the step is 1
 		const double unorm = 1. / sqrt(integralForSquare);
 
-		for (int i = 0; i < Psi.size(); ++i)
-			Psi[i] *= unorm;
+		for (double& p : Psi)
+			p *= unorm;
 	}
 
 

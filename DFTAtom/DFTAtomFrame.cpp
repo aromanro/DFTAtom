@@ -29,7 +29,7 @@ EVT_TIMER(ID_TIMER, DFTAtomFrame::OnTimer)
 wxEND_EVENT_TABLE()
 
 
-class MyStream : public std::ostream, std::streambuf
+class MyStream : public std::ostream, private std::streambuf
 {
 public:
 	MyStream(std::string& bufStr, std::mutex& strMutex) : std::ostream(this), m_bufStr(bufStr), m_strMutex(strMutex) {}
@@ -44,7 +44,7 @@ public:
 private:
 	void log(char c)
 	{
-		std::lock_guard<std::mutex> lock(m_strMutex);
+		std::lock_guard lock(m_strMutex);
 		m_bufStr += c;
 	}
 
@@ -56,7 +56,7 @@ private:
 class RedirectStream
 {
 public:
-	RedirectStream(std::ostream& old, std::ostream& dst)
+	RedirectStream(std::ostream& old, const std::ostream& dst)
 		: s(old), backupbuf(old.rdbuf())
 	{
 		s.rdbuf(dst.rdbuf());
@@ -68,6 +68,9 @@ public:
 	}
 
 private:
+	RedirectStream(const RedirectStream&) = delete;
+	RedirectStream& operator=(const RedirectStream&) = delete;
+
 	std::ostream& s;
 	std::streambuf* const backupbuf;
 };
@@ -77,7 +80,7 @@ private:
 
 
 DFTAtomFrame::DFTAtomFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-	: wxFrame(NULL, wxID_ANY, title, pos, size), inExecution(false), timer(this, ID_TIMER)
+	: wxFrame(nullptr, wxID_ANY, title, pos, size), inExecution(false), timer(this, ID_TIMER)
 {
 	wxMenu *menuFile = new wxMenu;
 
@@ -109,12 +112,6 @@ DFTAtomFrame::DFTAtomFrame(const wxString& title, const wxPoint& pos, const wxSi
 
 	Layout();	
 }
-
-
-DFTAtomFrame::~DFTAtomFrame()
-{
-}
-
 
 void DFTAtomFrame::OnOptions(wxCommandEvent& WXUNUSED(event))
 {
@@ -164,7 +161,7 @@ void DFTAtomFrame::OnTimer(wxTimerEvent& WXUNUSED(event))
 	}
 
 	{
-		std::lock_guard<std::mutex> lock(bufferStrMutex);
+		std::lock_guard lock(bufferStrMutex);
 		if (!bufferStr.empty())
 		{
 			richTextCtrl->AppendText(wxString(bufferStr));
@@ -177,14 +174,15 @@ void DFTAtomFrame::OnTimer(wxTimerEvent& WXUNUSED(event))
 void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 {
 	if (inExecution.exchange(true)) return;
+	else if (executionThread.joinable()) executionThread.join();
 	
 	wxBeginBusyCursor();
 	richTextCtrl->Clear();
 	timer.Start(100);
-	DFTAtomApp& app = wxGetApp();
+	const DFTAtomApp& app = wxGetApp();
 	Options options = app.options;
 
-	std::thread([this, options]()
+	executionThread = std::thread([this, options]()
 	{
 		MyStream myStream(bufferStr, bufferStrMutex);
 		RedirectStream redirect(std::cout, myStream);
@@ -197,7 +195,7 @@ void DFTAtomFrame::OnExecute(wxCommandEvent& WXUNUSED(event))
 			DFT::DFTAtom::CalculateNonUniformLDA(options.Z, options.MultigridLevels, options.alpha, options.MaxR, options.deltaGrid);
 
 		inExecution = false;
-	}).detach();
+	});
 }
 
 void DFTAtomFrame::OnUpdateExecute(wxUpdateUIEvent& event)

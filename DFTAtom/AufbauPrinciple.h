@@ -4,7 +4,7 @@ namespace DFT {
 
 	struct Subshell
 	{
-		Subshell(int N = 0, int L = 0, int nrElectrons = 0) : m_N(N), m_L(L), m_nrElectrons(nrElectrons), E(0) {}
+		Subshell(int N = 0, int L = 0, int nrElectrons = 0) : m_N(N), m_L(L), m_nrElectrons(nrElectrons) {}
 
 
 		bool operator<(const Subshell& o) const
@@ -16,7 +16,7 @@ namespace DFT {
 		int m_L;
 		int m_nrElectrons;
 
-		double E;
+		double E = 0;
 	};
 
 

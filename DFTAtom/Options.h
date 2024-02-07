@@ -23,9 +23,9 @@ public:
 		MaxR(other.MaxR),
 		deltaGrid(other.deltaGrid),
 		alpha(other.alpha),
-		method(other.method),
-		m_fileconfig(nullptr)
+		method(other.method)
 	{
+		m_fileconfig = nullptr;
 	}
 
 	Options& operator=(const Options& other)
@@ -57,6 +57,6 @@ protected:
 	void Open();
 	void Close();
 
-	wxFileConfig *m_fileconfig;
+	wxFileConfig *m_fileconfig = nullptr;
 };
 

@@ -19,7 +19,6 @@ namespace DFT {
 
 		std::vector<double> SolvePoissonUniform(int Z, double maxRadius, const std::vector<double>& density)
 		{
-			int coarsestLevel = static_cast<int>(SourceLevels.size() - 1);
 			auto &Source = SourceLevels[0];
 
 			PoissonSolver::FillR(Source, 0, maxRadius);
@@ -63,7 +62,7 @@ namespace DFT {
 
 			// it happens that for our current 'guess' of the solution (zero everywhere except for known boundary values)
 			// we have the residual equal with the 'charge'
-			const double Rp = maxRadius / (exp((density.size() - 1.) * deltaGrid) - 1.);
+			const double Rp = maxRadius / (exp((static_cast<double>(density.size()) - 1.) * deltaGrid) - 1.);
 			const double delta2grid = deltaGrid * deltaGrid;
 			const double Rp2delta2 = Rp * Rp * delta2grid;
 			const double twodelta = 2. * deltaGrid;
@@ -87,7 +86,7 @@ namespace DFT {
 
 		void SetBoundaries(double lowBoundary, double highBoundary);
 
-		double FullCycle(double errorMin = 0.001, double errorMinLast = 0.00001, double firstError = 0.3)
+		double FullCycle(double errorMin = 0.001, double errorMinLast = 0.00001)
 		{
 			static const int numSweeps = 3;
 			const int lastLevel = static_cast<int>(PhiLevels.size() - 1);

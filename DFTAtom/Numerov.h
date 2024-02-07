@@ -37,7 +37,7 @@ namespace DFT {
 
 		inline static double GetBoundaryValueZero(double position, unsigned int l)
 		{
-			return pow(position, static_cast<size_t>(l) + 1);
+			return pow(position, static_cast<double>(l) + 1.);
 		}
 
 		inline static double GetMaxRadiusIndex(double E, size_t maxIndex, double stepSize)
@@ -45,17 +45,17 @@ namespace DFT {
 			return std::min(GetMaxRadius(E, maxIndex) / stepSize, static_cast<double>(maxIndex));
 		}
 
-		inline static double GetDerivativeStep(int posIndex, double h)
+		inline static double GetDerivativeStep(int /*posIndex*/, double h)
 		{
 			return h;
 		}
 
-		inline static double GetMaxRadius(double E, size_t maxIndex)
+		inline static double GetMaxRadius(double E, size_t /*maxIndex*/)
 		{
 			return 200. / sqrt(2. * abs(E));
 		}
 
-		inline static double GetWavefunctionValue(size_t posIndex, double value)
+		inline static double GetWavefunctionValue(size_t /*posIndex*/, double value)
 		{
 			return value;
 		}
@@ -76,7 +76,7 @@ namespace DFT {
 		NumerovFunctionNonUniformGrid(const Potential& pot, double delta, double Rmax, size_t numPoints)
 			: m_pot(pot), m_delta(delta)
 		{
-			Rp = Rmax / (exp((numPoints - 1) * delta) - 1);
+			Rp = Rmax / (exp((static_cast<double>(numPoints) - 1.) * delta) - 1.);
 			const double Rp2 = Rp * Rp;
 
 			twodelta = 2. * m_delta;
@@ -104,7 +104,7 @@ namespace DFT {
 		{
 			const double realPosition = GetPosition(static_cast<int>(position));
 
-			return exp(-realPosition * sqrt(2. * abs(E)) - static_cast<int>(position) * m_delta * 0.5);
+			return exp(-realPosition * sqrt(2. * abs(E)) - position * m_delta * 0.5);
 		}
 
 		inline double GetBoundaryValueZero(double position, unsigned int l) const
@@ -112,7 +112,7 @@ namespace DFT {
 			const int posInd = static_cast<int>(position);
 			const double realPosition = GetPosition(posInd);
 
-			return pow(realPosition, static_cast<size_t>(l) + 1) * exp(-static_cast<int>(position) * m_delta * 0.5);
+			return pow(realPosition, static_cast<double>(l) + 1) * exp(-position * m_delta * 0.5);
 		}
 
 
@@ -140,7 +140,7 @@ namespace DFT {
 			double val = GetBoundaryValueFar(static_cast<double>(maxIndex), E);
 			if (val > MaxRadiusLimit)
 			{
-				const double position = Rp * (exp(maxIndex * m_delta) - 1.);
+				const double position = Rp * (exp(static_cast<double>(maxIndex) * m_delta) - 1.);
 
 				return position;
 			}
@@ -156,7 +156,7 @@ namespace DFT {
 					minIndex = midIndex;
 			}
 			
-			return Rp * (exp(maxIndex * m_delta) - 1.);
+			return Rp * (exp(static_cast<double>(maxIndex) * m_delta) - 1.);
 		}
 
 		inline double GetDerivativeStep(int posIndex, double h) const
@@ -166,7 +166,7 @@ namespace DFT {
 
 		inline double GetWavefunctionValue(size_t posIndex, double value) const
 		{
-			return exp(posIndex * m_delta * 0.5) * value;
+			return exp(static_cast<double>(posIndex) * m_delta * 0.5) * value;
 		}
 
 		inline double GetRp() const { return Rp; }
@@ -177,10 +177,10 @@ namespace DFT {
 			return false;
 		}
 
-	protected:
+	private:
 		inline double GetPosition(size_t posIndex) const
 		{
-			return Rp * (exp(posIndex * m_delta) - 1.);
+			return Rp * (exp(static_cast<double>(posIndex) * m_delta) - 1.);
 		}
 
 		const Potential& m_pot;
@@ -199,9 +199,7 @@ namespace DFT {
 	template<class NumerovFunction> class Numerov
 	{
 	public:
-		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, size_t numPoints = 0) : function(pot, delta, Rmax, numPoints), h(1), h2(1), h2p12(1. / 12.) {}
-
-
+		Numerov(const Potential& pot, double delta = 0, double Rmax = 0, size_t numPoints = 0) : function(pot, delta, Rmax, numPoints) {}
 
 		inline void SolveSchrodingerCountNodesFromNucleus(double endPoint, unsigned int l, double E, long int steps, long int nodesLimit, int& nodesCount)
 		{
@@ -225,7 +223,6 @@ namespace DFT {
 			}
 
 			double position = 0;
-			double prevSol = 0;
 			double solution = 0;
 			double wprev = 0;
 
@@ -253,10 +250,8 @@ namespace DFT {
 				solution = getU(w, funcVal);
 
 				if (abs(solution) == std::numeric_limits<double>::infinity())
-					return;
-
-				const bool newSgn = (solution > 0);
-				if (newSgn != oldSgn)
+					return;				
+				if (const bool newSgn = (solution > 0); newSgn != oldSgn)
 				{
 					++nodesCount;
 					if (nodesCount > nodesLimit)
@@ -328,8 +323,7 @@ namespace DFT {
 				if (abs(solution) == std::numeric_limits<double>::infinity())
 					return;
 
-				const bool newSgn = (solution > 0);
-				if (newSgn != oldSgn)
+				if (const bool newSgn = (solution > 0); newSgn != oldSgn)
 				{
 					++nodesCount;
 					if (nodesCount > nodesLimit)
@@ -511,16 +505,16 @@ namespace DFT {
 
 		NumerovFunction function;
 
-	protected:
+	private:
 		// 2.13
 		inline double getU(double w, double funcVal) const
 		{
 			return w / (1. - h2p12 * funcVal);
 		}
 
-		double h;
-		double h2;
-		double h2p12;
+		double h = 1.;
+		double h2 = 1.;
+		double h2p12 = 1./12.;
 	};
 
 }

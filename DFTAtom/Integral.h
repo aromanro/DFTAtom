@@ -119,7 +119,8 @@ namespace DFT {
 				n >>= 1;
 			}
 
-			std::vector<T> Rprev(cnt), Rcur(cnt);
+			std::vector<T> Rprev(cnt);
+			std::vector<T> Rcur(cnt);
 			double h = delta * numPoints;
 			Rprev[0] = 0.5 * h * (values[0] + values[numPoints]); // R(0,0) - trapezoid
 
