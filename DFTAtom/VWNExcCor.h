@@ -74,14 +74,14 @@ namespace DFT {
 		{
 			static const double	X1 = pow(3. / (2. * M_PI), 2. * aThird);  // Exchange energy coefficient
 							
-			std::vector<double> res(n.size());
+			std::vector<double> res;
+			res.reserve(n.size());
 
-			for (int i = 0; i < n.size(); ++i)
+			for (const auto ro : n)
 			{
-				const double ro = n[i];
 				if (ro < 1E-18)
 				{
-					res[i] = 0;
+					res.emplace_back(0.);
 					continue;
 				}
 				
@@ -90,10 +90,11 @@ namespace DFT {
 				const double Y = y * y + bP * y + cP;
 
 				const double dify = y - y0P;
-				res[i] = -X1 / rs // exchange term
+				
+				res.emplace_back(-X1 / rs // exchange term
 					//the following make the Vc as in B.1
 					+ F(y, dify, AP, y0P, bP, cP, Y0P, Y) // B.5
-					- aThird * ecDif(y, dify, AP, y0P, bP, cP, Y0P, Y); // B.6
+					- aThird * ecDif(y, dify, AP, y0P, bP, cP, Y0P, Y)); // B.6
 			}
 
 			return res;
@@ -103,14 +104,14 @@ namespace DFT {
 		{
 			static const double X1 = 0.25 * pow(3. / (2.*M_PI), 2. * aThird);  // Exchange energy coefficient
 				
-			std::vector<double> res(n.size());
+			std::vector<double> res;
+			res.reserve(n.size());
 
-			for (int i = 0; i < n.size(); ++i)
+			for (const auto ro : n)
 			{
-				const double ro = n[i];	
 				if (ro < 1E-18)
 				{
-					res[i] = 0;
+					res.emplace_back(0.);
 					continue;
 				}
 
@@ -119,8 +120,8 @@ namespace DFT {
 				const double Y = y * y + bP * y + cP;
 				const double dify = y - y0P;
 
-				res[i] = X1 / rs // exchange term
-					+ aThird * ecDif(y, dify, AP, y0P, bP, cP, Y0P, Y); // B.6
+				res.emplace_back(X1 / rs // exchange term
+					+ aThird * ecDif(y, dify, AP, y0P, bP, cP, Y0P, Y)); // B.6
 			}
 
 			return res;
@@ -132,7 +133,7 @@ namespace DFT {
 
 		static std::vector<double> Vexc(const std::vector<double>& na, const std::vector<double>& nb, std::vector<double>& va, std::vector<double>& vb)
 		{
-			int sz = static_cast<int>(na.size());
+			const int sz = static_cast<int>(na.size());
 			if (sz != nb.size()) return {};
 			
 			static const double	X1 = pow(3. / (2. * M_PI), 2. * aThird);  // Exchange energy coefficient - see eq 4 NIST, but it's arranged
@@ -140,10 +141,13 @@ namespace DFT {
 			static const double X12 = X1 * X2;
 			static const double fdd = 4. / (9. * (pow(2., aThird) - 1.));
 
-			std::vector<double> res(sz);
+			std::vector<double> res;
+			res.reserve(sz);
 
-			va.resize(sz);
-			vb.resize(sz);
+			va.resize(0);
+			va.reserve(sz);
+			vb.resize(0);
+			vb.reserve(sz);
 
 			for (int i = 0; i < sz; ++i)
 			{
@@ -152,7 +156,9 @@ namespace DFT {
 				const double n = roa + rob;
 				if (n < 1E-18)
 				{
-					res[i] = va[i] = vb[i] = 0;
+					res.emplace_back(0.);
+					va.emplace_back(0.);
+					vb.emplace_back(0.);
 					continue;
 				}
 
@@ -209,8 +215,10 @@ namespace DFT {
 				const double deriv = aThird * (ecpd // paramagnetic part
 					+ ecad * interp + eca * interpd);
 
-				res[i] = 
-					// the following two terms sum make the eq 7 from NIST
+				// derivative with respect to zeta
+				const double dterm = eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
+
+				res.emplace_back(// the following two terms sum make the eq 7 from NIST
 					// paramagnetic part:
 					ecp
 					// the polarization part
@@ -220,15 +228,12 @@ namespace DFT {
 					//+ deltaecfp * fval * zeta4		
 
 					// derivative
-					- deriv;
-					
-				// derivative with respect to zeta
-				const double dterm = eca / fdd * (4. * beta * zeta3 * fval + opbz4 * dfval);
+					-deriv);
 
-				va[i] = exfa + res[i] + (1. - zeta) * dterm;
-				vb[i] = exfb + res[i] - (1. + zeta) * dterm;
+				va.emplace_back(exfa + res.back() + (1. - zeta) * dterm);
+				vb.emplace_back(exfb + res.back() - (1. + zeta) * dterm);
 
-				res[i] += exp + exdif * fval; // exchange term - eq 1 NIST
+				res.back() += (exp + exdif * fval); // exchange term - eq 1 NIST
 			}
 
 			return res;
@@ -236,14 +241,15 @@ namespace DFT {
 
 		static std::vector<double> eexcDif(const std::vector<double>& na, const std::vector<double>& nb)
 		{
-			int sz = static_cast<int>(na.size());
+			const int sz = static_cast<int>(na.size());
 			if (sz != nb.size()) return {};
 
 			static const double	X1d = 0.25 * pow(3. / (2. * M_PI), 2. * aThird);  // Exchange energy coefficient
 			static const double X2d = pow(2., aThird);
 			static const double fdd = 4. / (9. * (pow(2., aThird) - 1.));
 
-			std::vector<double> res(sz);
+			std::vector<double> res;
+			res.reserve(sz);
 
 			for (int i = 0; i < sz; ++i)
 			{
@@ -252,7 +258,7 @@ namespace DFT {
 				const double n = roa + rob;
 				if (n < 1E-18)
 				{
-					res[i] = 0;
+					res.emplace_back(0.);
 					continue;
 				}
 
@@ -289,7 +295,7 @@ namespace DFT {
 				const double beta = fdd * deltaecfp / eca - 1.; // eq. 9 NIST
 				const double opbz4 = 1 + beta * zeta4;
 				const double interp = fval / fdd * opbz4; // eq 8 NIST without alphac
-				const double deltaec = eca * interp; // eq. 8 NIST
+				//const double deltaec = eca * interp; // eq. 8 NIST
 
 				const double betad = fdd / eca * (ecfd - ecpd - ecad * deltaecfp / eca);
 				const double interpd = fval / fdd * zeta4 * betad;
@@ -297,9 +303,9 @@ namespace DFT {
 				const double deriv = aThird * (ecpd // paramagnetic part
 					+ ecad * interp + eca * interpd);
 
-				res[i] = expd + (exfd - expd) * fval // exchange term
+				res.emplace_back(expd + (exfd - expd) * fval // exchange term
 					// correlation term:
-					+ deriv;
+					+ deriv);
 			}
 
 			return res;

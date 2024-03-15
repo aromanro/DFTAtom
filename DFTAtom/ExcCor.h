@@ -41,29 +41,25 @@ namespace DFT {
 		{
 			static const double	X1 = pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 
-			size_t sz = n.size();
-			std::vector<double> res(sz);
+			std::vector<double> res;
+			res.reserve(n.size());
 
-			for (int i = 0; i < sz; ++i)
+			for (const auto ro : n)
 			{
-				const double ro = n[i];
 				if (ro < 1E-18)
 				{
-					res[i] = 0;
+					res.emplace_back(0.);
 					continue;
 				}
 
 				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);
-
-				// exchange
-				res[i] = -X1 / rs;
-
-				// correlation
 				const double bprs = b / rs;
 				const double bprs2 = bprs / rs;
 
-				res[i] += a * log(1. + bprs + bprs / rs)
-					- a / (1. + bprs + bprs2) * (bprs + 2. * bprs2) * rs / 3.;
+				res.emplace_back(-X1 / rs // exchange
+					// correlation
+					+ a * log(1. + bprs + bprs / rs)
+					- a / (1. + bprs + bprs2) * (bprs + 2. * bprs2) * rs / 3.);
 			}
 
 			return res;
@@ -74,28 +70,24 @@ namespace DFT {
 		{
 			static const double X1 = 0.25 * pow(3. / (2. * M_PI), 2. / 3.);  // Exchange energy coefficient
 
-			size_t sz = n.size();
-			std::vector<double> res(sz);
+			std::vector<double> res;
+			res.reserve(n.size());
 
-			for (int i = 0; i < sz; ++i)
+			for (const auto ro : n)
 			{
-				const double ro = n[i];
 				if (ro < 1E-18)
 				{
-					res[i] = 0;
+					res.emplace_back(0.);
 					continue;
 				}
 
-				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);
-
-				// exchange
-				res[i] = X1 / rs;
-
-				// correlation
+				const double rs = pow(3. / (fourM_PI * ro), 1. / 3.);				
 				const double bprs = b / rs;
 				const double bprs2 = bprs / rs;
 
-				res[i] += a / (1. + bprs + bprs2) * (bprs + 2. * bprs2) * rs / 3.;
+				res.emplace_back(X1 / rs // exchange
+					// correlation
+				    + a / (1. + bprs + bprs2) * (bprs + 2. * bprs2) * rs / 3.);
 			}
 
 			return res;
